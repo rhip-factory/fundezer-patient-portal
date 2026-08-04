@@ -10,33 +10,128 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ApplyDocumentsRouteImport } from './routes/apply.documents'
+import { Route as ApplyGeneratingRouteImport } from './routes/apply.generating'
+import { Route as ApplyHospitalRouteImport } from './routes/apply.hospital'
+import { Route as ApplyLocationRouteImport } from './routes/apply.location'
+import { Route as ApplyRegistrationRouteImport } from './routes/apply.registration'
+import { Route as ApplyStoryRouteImport } from './routes/apply.story'
+import { Route as ApplyStoryReviewRouteImport } from './routes/apply.story-review'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApplyDocumentsRoute = ApplyDocumentsRouteImport.update({
+  id: '/apply/documents',
+  path: '/apply/documents',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApplyGeneratingRoute = ApplyGeneratingRouteImport.update({
+  id: '/apply/generating',
+  path: '/apply/generating',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApplyHospitalRoute = ApplyHospitalRouteImport.update({
+  id: '/apply/hospital',
+  path: '/apply/hospital',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApplyLocationRoute = ApplyLocationRouteImport.update({
+  id: '/apply/location',
+  path: '/apply/location',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApplyRegistrationRoute = ApplyRegistrationRouteImport.update({
+  id: '/apply/registration',
+  path: '/apply/registration',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApplyStoryRoute = ApplyStoryRouteImport.update({
+  id: '/apply/story',
+  path: '/apply/story',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApplyStoryReviewRoute = ApplyStoryReviewRouteImport.update({
+  id: '/apply/story-review',
+  path: '/apply/story-review',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/apply/documents': typeof ApplyDocumentsRoute
+  '/apply/generating': typeof ApplyGeneratingRoute
+  '/apply/hospital': typeof ApplyHospitalRoute
+  '/apply/location': typeof ApplyLocationRoute
+  '/apply/registration': typeof ApplyRegistrationRoute
+  '/apply/story': typeof ApplyStoryRoute
+  '/apply/story-review': typeof ApplyStoryReviewRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/apply/documents': typeof ApplyDocumentsRoute
+  '/apply/generating': typeof ApplyGeneratingRoute
+  '/apply/hospital': typeof ApplyHospitalRoute
+  '/apply/location': typeof ApplyLocationRoute
+  '/apply/registration': typeof ApplyRegistrationRoute
+  '/apply/story': typeof ApplyStoryRoute
+  '/apply/story-review': typeof ApplyStoryReviewRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/apply/documents': typeof ApplyDocumentsRoute
+  '/apply/generating': typeof ApplyGeneratingRoute
+  '/apply/hospital': typeof ApplyHospitalRoute
+  '/apply/location': typeof ApplyLocationRoute
+  '/apply/registration': typeof ApplyRegistrationRoute
+  '/apply/story': typeof ApplyStoryRoute
+  '/apply/story-review': typeof ApplyStoryReviewRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/apply/documents'
+    | '/apply/generating'
+    | '/apply/hospital'
+    | '/apply/location'
+    | '/apply/registration'
+    | '/apply/story'
+    | '/apply/story-review'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/apply/documents'
+    | '/apply/generating'
+    | '/apply/hospital'
+    | '/apply/location'
+    | '/apply/registration'
+    | '/apply/story'
+    | '/apply/story-review'
+  id:
+    | '__root__'
+    | '/'
+    | '/apply/documents'
+    | '/apply/generating'
+    | '/apply/hospital'
+    | '/apply/location'
+    | '/apply/registration'
+    | '/apply/story'
+    | '/apply/story-review'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ApplyDocumentsRoute: typeof ApplyDocumentsRoute
+  ApplyGeneratingRoute: typeof ApplyGeneratingRoute
+  ApplyHospitalRoute: typeof ApplyHospitalRoute
+  ApplyLocationRoute: typeof ApplyLocationRoute
+  ApplyRegistrationRoute: typeof ApplyRegistrationRoute
+  ApplyStoryRoute: typeof ApplyStoryRoute
+  ApplyStoryReviewRoute: typeof ApplyStoryReviewRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +143,67 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/apply/documents': {
+      id: '/apply/documents'
+      path: '/apply/documents'
+      fullPath: '/apply/documents'
+      preLoaderRoute: typeof ApplyDocumentsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/apply/generating': {
+      id: '/apply/generating'
+      path: '/apply/generating'
+      fullPath: '/apply/generating'
+      preLoaderRoute: typeof ApplyGeneratingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/apply/hospital': {
+      id: '/apply/hospital'
+      path: '/apply/hospital'
+      fullPath: '/apply/hospital'
+      preLoaderRoute: typeof ApplyHospitalRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/apply/location': {
+      id: '/apply/location'
+      path: '/apply/location'
+      fullPath: '/apply/location'
+      preLoaderRoute: typeof ApplyLocationRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/apply/registration': {
+      id: '/apply/registration'
+      path: '/apply/registration'
+      fullPath: '/apply/registration'
+      preLoaderRoute: typeof ApplyRegistrationRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/apply/story': {
+      id: '/apply/story'
+      path: '/apply/story'
+      fullPath: '/apply/story'
+      preLoaderRoute: typeof ApplyStoryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/apply/story-review': {
+      id: '/apply/story-review'
+      path: '/apply/story-review'
+      fullPath: '/apply/story-review'
+      preLoaderRoute: typeof ApplyStoryReviewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ApplyDocumentsRoute: ApplyDocumentsRoute,
+  ApplyGeneratingRoute: ApplyGeneratingRoute,
+  ApplyHospitalRoute: ApplyHospitalRoute,
+  ApplyLocationRoute: ApplyLocationRoute,
+  ApplyRegistrationRoute: ApplyRegistrationRoute,
+  ApplyStoryRoute: ApplyStoryRoute,
+  ApplyStoryReviewRoute: ApplyStoryReviewRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
