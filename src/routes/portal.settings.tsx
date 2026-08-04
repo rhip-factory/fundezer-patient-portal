@@ -84,7 +84,7 @@ function SettingsPage() {
                 <p className="mt-0.5 text-sm text-muted-foreground">{p.body}</p>
               </div>
               <Switch
-                checked={enabled[p.id]}
+                checked={enabled[p.id] ?? false}
                 aria-label={p.label}
                 onCheckedChange={(v) => {
                   setEnabled((prev) => ({ ...prev, [p.id]: v }));

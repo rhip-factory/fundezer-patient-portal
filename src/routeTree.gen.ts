@@ -23,6 +23,10 @@ import { Route as ApplySuccessRouteImport } from './routes/apply.success'
 import { Route as PortalIndexRouteImport } from './routes/portal.index'
 import { Route as PortalApplicationRouteImport } from './routes/portal.application'
 import { Route as PortalCampaignRouteImport } from './routes/portal.campaign'
+import { Route as PortalDocumentsRouteImport } from './routes/portal.documents'
+import { Route as PortalNotificationsRouteImport } from './routes/portal.notifications'
+import { Route as PortalProfileRouteImport } from './routes/portal.profile'
+import { Route as PortalSettingsRouteImport } from './routes/portal.settings'
 import { Route as PortalTreatmentRouteImport } from './routes/portal.treatment'
 
 const IndexRoute = IndexRouteImport.update({
@@ -95,6 +99,26 @@ const PortalCampaignRoute = PortalCampaignRouteImport.update({
   path: '/campaign',
   getParentRoute: () => PortalRoute,
 } as any)
+const PortalDocumentsRoute = PortalDocumentsRouteImport.update({
+  id: '/documents',
+  path: '/documents',
+  getParentRoute: () => PortalRoute,
+} as any)
+const PortalNotificationsRoute = PortalNotificationsRouteImport.update({
+  id: '/notifications',
+  path: '/notifications',
+  getParentRoute: () => PortalRoute,
+} as any)
+const PortalProfileRoute = PortalProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => PortalRoute,
+} as any)
+const PortalSettingsRoute = PortalSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => PortalRoute,
+} as any)
 const PortalTreatmentRoute = PortalTreatmentRouteImport.update({
   id: '/treatment',
   path: '/treatment',
@@ -115,6 +139,10 @@ export interface FileRoutesByFullPath {
   '/apply/success': typeof ApplySuccessRoute
   '/portal/application': typeof PortalApplicationRoute
   '/portal/campaign': typeof PortalCampaignRoute
+  '/portal/documents': typeof PortalDocumentsRoute
+  '/portal/notifications': typeof PortalNotificationsRoute
+  '/portal/profile': typeof PortalProfileRoute
+  '/portal/settings': typeof PortalSettingsRoute
   '/portal/treatment': typeof PortalTreatmentRoute
   '/portal/': typeof PortalIndexRoute
 }
@@ -131,6 +159,10 @@ export interface FileRoutesByTo {
   '/apply/success': typeof ApplySuccessRoute
   '/portal/application': typeof PortalApplicationRoute
   '/portal/campaign': typeof PortalCampaignRoute
+  '/portal/documents': typeof PortalDocumentsRoute
+  '/portal/notifications': typeof PortalNotificationsRoute
+  '/portal/profile': typeof PortalProfileRoute
+  '/portal/settings': typeof PortalSettingsRoute
   '/portal/treatment': typeof PortalTreatmentRoute
   '/portal': typeof PortalIndexRoute
 }
@@ -149,6 +181,10 @@ export interface FileRoutesById {
   '/apply/success': typeof ApplySuccessRoute
   '/portal/application': typeof PortalApplicationRoute
   '/portal/campaign': typeof PortalCampaignRoute
+  '/portal/documents': typeof PortalDocumentsRoute
+  '/portal/notifications': typeof PortalNotificationsRoute
+  '/portal/profile': typeof PortalProfileRoute
+  '/portal/settings': typeof PortalSettingsRoute
   '/portal/treatment': typeof PortalTreatmentRoute
   '/portal/': typeof PortalIndexRoute
 }
@@ -168,6 +204,10 @@ export interface FileRouteTypes {
     | '/apply/success'
     | '/portal/application'
     | '/portal/campaign'
+    | '/portal/documents'
+    | '/portal/notifications'
+    | '/portal/profile'
+    | '/portal/settings'
     | '/portal/treatment'
     | '/portal/'
   fileRoutesByTo: FileRoutesByTo
@@ -184,6 +224,10 @@ export interface FileRouteTypes {
     | '/apply/success'
     | '/portal/application'
     | '/portal/campaign'
+    | '/portal/documents'
+    | '/portal/notifications'
+    | '/portal/profile'
+    | '/portal/settings'
     | '/portal/treatment'
     | '/portal'
   id:
@@ -201,6 +245,10 @@ export interface FileRouteTypes {
     | '/apply/success'
     | '/portal/application'
     | '/portal/campaign'
+    | '/portal/documents'
+    | '/portal/notifications'
+    | '/portal/profile'
+    | '/portal/settings'
     | '/portal/treatment'
     | '/portal/'
   fileRoutesById: FileRoutesById
@@ -319,6 +367,34 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PortalCampaignRouteImport
       parentRoute: typeof PortalRoute
     }
+    '/portal/documents': {
+      id: '/portal/documents'
+      path: '/documents'
+      fullPath: '/portal/documents'
+      preLoaderRoute: typeof PortalDocumentsRouteImport
+      parentRoute: typeof PortalRoute
+    }
+    '/portal/notifications': {
+      id: '/portal/notifications'
+      path: '/notifications'
+      fullPath: '/portal/notifications'
+      preLoaderRoute: typeof PortalNotificationsRouteImport
+      parentRoute: typeof PortalRoute
+    }
+    '/portal/profile': {
+      id: '/portal/profile'
+      path: '/profile'
+      fullPath: '/portal/profile'
+      preLoaderRoute: typeof PortalProfileRouteImport
+      parentRoute: typeof PortalRoute
+    }
+    '/portal/settings': {
+      id: '/portal/settings'
+      path: '/settings'
+      fullPath: '/portal/settings'
+      preLoaderRoute: typeof PortalSettingsRouteImport
+      parentRoute: typeof PortalRoute
+    }
     '/portal/treatment': {
       id: '/portal/treatment'
       path: '/treatment'
@@ -332,6 +408,10 @@ declare module '@tanstack/react-router' {
 interface PortalRouteChildren {
   PortalApplicationRoute: typeof PortalApplicationRoute
   PortalCampaignRoute: typeof PortalCampaignRoute
+  PortalDocumentsRoute: typeof PortalDocumentsRoute
+  PortalNotificationsRoute: typeof PortalNotificationsRoute
+  PortalProfileRoute: typeof PortalProfileRoute
+  PortalSettingsRoute: typeof PortalSettingsRoute
   PortalTreatmentRoute: typeof PortalTreatmentRoute
   PortalIndexRoute: typeof PortalIndexRoute
 }
@@ -339,6 +419,10 @@ interface PortalRouteChildren {
 const PortalRouteChildren: PortalRouteChildren = {
   PortalApplicationRoute: PortalApplicationRoute,
   PortalCampaignRoute: PortalCampaignRoute,
+  PortalDocumentsRoute: PortalDocumentsRoute,
+  PortalNotificationsRoute: PortalNotificationsRoute,
+  PortalProfileRoute: PortalProfileRoute,
+  PortalSettingsRoute: PortalSettingsRoute,
   PortalTreatmentRoute: PortalTreatmentRoute,
   PortalIndexRoute: PortalIndexRoute,
 }
