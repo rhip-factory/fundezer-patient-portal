@@ -15,6 +15,7 @@ import { Route as ApplyGeneratingRouteImport } from './routes/apply.generating'
 import { Route as ApplyHospitalRouteImport } from './routes/apply.hospital'
 import { Route as ApplyLocationRouteImport } from './routes/apply.location'
 import { Route as ApplyRegistrationRouteImport } from './routes/apply.registration'
+import { Route as ApplyReviewRouteImport } from './routes/apply.review'
 import { Route as ApplyStoryRouteImport } from './routes/apply.story'
 import { Route as ApplyStoryReviewRouteImport } from './routes/apply.story-review'
 
@@ -48,6 +49,11 @@ const ApplyRegistrationRoute = ApplyRegistrationRouteImport.update({
   path: '/apply/registration',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApplyReviewRoute = ApplyReviewRouteImport.update({
+  id: '/apply/review',
+  path: '/apply/review',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApplyStoryRoute = ApplyStoryRouteImport.update({
   id: '/apply/story',
   path: '/apply/story',
@@ -66,6 +72,7 @@ export interface FileRoutesByFullPath {
   '/apply/hospital': typeof ApplyHospitalRoute
   '/apply/location': typeof ApplyLocationRoute
   '/apply/registration': typeof ApplyRegistrationRoute
+  '/apply/review': typeof ApplyReviewRoute
   '/apply/story': typeof ApplyStoryRoute
   '/apply/story-review': typeof ApplyStoryReviewRoute
 }
@@ -76,6 +83,7 @@ export interface FileRoutesByTo {
   '/apply/hospital': typeof ApplyHospitalRoute
   '/apply/location': typeof ApplyLocationRoute
   '/apply/registration': typeof ApplyRegistrationRoute
+  '/apply/review': typeof ApplyReviewRoute
   '/apply/story': typeof ApplyStoryRoute
   '/apply/story-review': typeof ApplyStoryReviewRoute
 }
@@ -87,6 +95,7 @@ export interface FileRoutesById {
   '/apply/hospital': typeof ApplyHospitalRoute
   '/apply/location': typeof ApplyLocationRoute
   '/apply/registration': typeof ApplyRegistrationRoute
+  '/apply/review': typeof ApplyReviewRoute
   '/apply/story': typeof ApplyStoryRoute
   '/apply/story-review': typeof ApplyStoryReviewRoute
 }
@@ -99,6 +108,7 @@ export interface FileRouteTypes {
     | '/apply/hospital'
     | '/apply/location'
     | '/apply/registration'
+    | '/apply/review'
     | '/apply/story'
     | '/apply/story-review'
   fileRoutesByTo: FileRoutesByTo
@@ -109,6 +119,7 @@ export interface FileRouteTypes {
     | '/apply/hospital'
     | '/apply/location'
     | '/apply/registration'
+    | '/apply/review'
     | '/apply/story'
     | '/apply/story-review'
   id:
@@ -119,6 +130,7 @@ export interface FileRouteTypes {
     | '/apply/hospital'
     | '/apply/location'
     | '/apply/registration'
+    | '/apply/review'
     | '/apply/story'
     | '/apply/story-review'
   fileRoutesById: FileRoutesById
@@ -130,6 +142,7 @@ export interface RootRouteChildren {
   ApplyHospitalRoute: typeof ApplyHospitalRoute
   ApplyLocationRoute: typeof ApplyLocationRoute
   ApplyRegistrationRoute: typeof ApplyRegistrationRoute
+  ApplyReviewRoute: typeof ApplyReviewRoute
   ApplyStoryRoute: typeof ApplyStoryRoute
   ApplyStoryReviewRoute: typeof ApplyStoryReviewRoute
 }
@@ -178,6 +191,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApplyRegistrationRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/apply/review': {
+      id: '/apply/review'
+      path: '/apply/review'
+      fullPath: '/apply/review'
+      preLoaderRoute: typeof ApplyReviewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/apply/story': {
       id: '/apply/story'
       path: '/apply/story'
@@ -202,6 +222,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApplyHospitalRoute: ApplyHospitalRoute,
   ApplyLocationRoute: ApplyLocationRoute,
   ApplyRegistrationRoute: ApplyRegistrationRoute,
+  ApplyReviewRoute: ApplyReviewRoute,
   ApplyStoryRoute: ApplyStoryRoute,
   ApplyStoryReviewRoute: ApplyStoryReviewRoute,
 }
