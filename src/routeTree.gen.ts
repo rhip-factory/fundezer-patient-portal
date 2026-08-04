@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as PortalRouteImport } from './routes/portal'
 import { Route as ApplyDocumentsRouteImport } from './routes/apply.documents'
 import { Route as ApplyGeneratingRouteImport } from './routes/apply.generating'
 import { Route as ApplyHospitalRouteImport } from './routes/apply.hospital'
@@ -19,10 +20,19 @@ import { Route as ApplyReviewRouteImport } from './routes/apply.review'
 import { Route as ApplyStoryRouteImport } from './routes/apply.story'
 import { Route as ApplyStoryReviewRouteImport } from './routes/apply.story-review'
 import { Route as ApplySuccessRouteImport } from './routes/apply.success'
+import { Route as PortalIndexRouteImport } from './routes/portal.index'
+import { Route as PortalApplicationRouteImport } from './routes/portal.application'
+import { Route as PortalCampaignRouteImport } from './routes/portal.campaign'
+import { Route as PortalTreatmentRouteImport } from './routes/portal.treatment'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PortalRoute = PortalRouteImport.update({
+  id: '/portal',
+  path: '/portal',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApplyDocumentsRoute = ApplyDocumentsRouteImport.update({
@@ -70,9 +80,30 @@ const ApplySuccessRoute = ApplySuccessRouteImport.update({
   path: '/apply/success',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PortalIndexRoute = PortalIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => PortalRoute,
+} as any)
+const PortalApplicationRoute = PortalApplicationRouteImport.update({
+  id: '/application',
+  path: '/application',
+  getParentRoute: () => PortalRoute,
+} as any)
+const PortalCampaignRoute = PortalCampaignRouteImport.update({
+  id: '/campaign',
+  path: '/campaign',
+  getParentRoute: () => PortalRoute,
+} as any)
+const PortalTreatmentRoute = PortalTreatmentRouteImport.update({
+  id: '/treatment',
+  path: '/treatment',
+  getParentRoute: () => PortalRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/portal': typeof PortalRouteWithChildren
   '/apply/documents': typeof ApplyDocumentsRoute
   '/apply/generating': typeof ApplyGeneratingRoute
   '/apply/hospital': typeof ApplyHospitalRoute
@@ -82,6 +113,10 @@ export interface FileRoutesByFullPath {
   '/apply/story': typeof ApplyStoryRoute
   '/apply/story-review': typeof ApplyStoryReviewRoute
   '/apply/success': typeof ApplySuccessRoute
+  '/portal/application': typeof PortalApplicationRoute
+  '/portal/campaign': typeof PortalCampaignRoute
+  '/portal/treatment': typeof PortalTreatmentRoute
+  '/portal/': typeof PortalIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -94,10 +129,15 @@ export interface FileRoutesByTo {
   '/apply/story': typeof ApplyStoryRoute
   '/apply/story-review': typeof ApplyStoryReviewRoute
   '/apply/success': typeof ApplySuccessRoute
+  '/portal/application': typeof PortalApplicationRoute
+  '/portal/campaign': typeof PortalCampaignRoute
+  '/portal/treatment': typeof PortalTreatmentRoute
+  '/portal': typeof PortalIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/portal': typeof PortalRouteWithChildren
   '/apply/documents': typeof ApplyDocumentsRoute
   '/apply/generating': typeof ApplyGeneratingRoute
   '/apply/hospital': typeof ApplyHospitalRoute
@@ -107,11 +147,16 @@ export interface FileRoutesById {
   '/apply/story': typeof ApplyStoryRoute
   '/apply/story-review': typeof ApplyStoryReviewRoute
   '/apply/success': typeof ApplySuccessRoute
+  '/portal/application': typeof PortalApplicationRoute
+  '/portal/campaign': typeof PortalCampaignRoute
+  '/portal/treatment': typeof PortalTreatmentRoute
+  '/portal/': typeof PortalIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/portal'
     | '/apply/documents'
     | '/apply/generating'
     | '/apply/hospital'
@@ -121,6 +166,10 @@ export interface FileRouteTypes {
     | '/apply/story'
     | '/apply/story-review'
     | '/apply/success'
+    | '/portal/application'
+    | '/portal/campaign'
+    | '/portal/treatment'
+    | '/portal/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -133,9 +182,14 @@ export interface FileRouteTypes {
     | '/apply/story'
     | '/apply/story-review'
     | '/apply/success'
+    | '/portal/application'
+    | '/portal/campaign'
+    | '/portal/treatment'
+    | '/portal'
   id:
     | '__root__'
     | '/'
+    | '/portal'
     | '/apply/documents'
     | '/apply/generating'
     | '/apply/hospital'
@@ -145,10 +199,15 @@ export interface FileRouteTypes {
     | '/apply/story'
     | '/apply/story-review'
     | '/apply/success'
+    | '/portal/application'
+    | '/portal/campaign'
+    | '/portal/treatment'
+    | '/portal/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  PortalRoute: typeof PortalRouteWithChildren
   ApplyDocumentsRoute: typeof ApplyDocumentsRoute
   ApplyGeneratingRoute: typeof ApplyGeneratingRoute
   ApplyHospitalRoute: typeof ApplyHospitalRoute
@@ -167,6 +226,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/portal': {
+      id: '/portal'
+      path: '/portal'
+      fullPath: '/portal'
+      preLoaderRoute: typeof PortalRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/apply/documents': {
@@ -232,11 +298,57 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApplySuccessRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/portal/': {
+      id: '/portal/'
+      path: '/'
+      fullPath: '/portal/'
+      preLoaderRoute: typeof PortalIndexRouteImport
+      parentRoute: typeof PortalRoute
+    }
+    '/portal/application': {
+      id: '/portal/application'
+      path: '/application'
+      fullPath: '/portal/application'
+      preLoaderRoute: typeof PortalApplicationRouteImport
+      parentRoute: typeof PortalRoute
+    }
+    '/portal/campaign': {
+      id: '/portal/campaign'
+      path: '/campaign'
+      fullPath: '/portal/campaign'
+      preLoaderRoute: typeof PortalCampaignRouteImport
+      parentRoute: typeof PortalRoute
+    }
+    '/portal/treatment': {
+      id: '/portal/treatment'
+      path: '/treatment'
+      fullPath: '/portal/treatment'
+      preLoaderRoute: typeof PortalTreatmentRouteImport
+      parentRoute: typeof PortalRoute
+    }
   }
 }
 
+interface PortalRouteChildren {
+  PortalApplicationRoute: typeof PortalApplicationRoute
+  PortalCampaignRoute: typeof PortalCampaignRoute
+  PortalTreatmentRoute: typeof PortalTreatmentRoute
+  PortalIndexRoute: typeof PortalIndexRoute
+}
+
+const PortalRouteChildren: PortalRouteChildren = {
+  PortalApplicationRoute: PortalApplicationRoute,
+  PortalCampaignRoute: PortalCampaignRoute,
+  PortalTreatmentRoute: PortalTreatmentRoute,
+  PortalIndexRoute: PortalIndexRoute,
+}
+
+const PortalRouteWithChildren =
+  PortalRoute._addFileChildren(PortalRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  PortalRoute: PortalRouteWithChildren,
   ApplyDocumentsRoute: ApplyDocumentsRoute,
   ApplyGeneratingRoute: ApplyGeneratingRoute,
   ApplyHospitalRoute: ApplyHospitalRoute,
