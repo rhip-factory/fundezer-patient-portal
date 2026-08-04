@@ -18,6 +18,7 @@ import { Route as ApplyRegistrationRouteImport } from './routes/apply.registrati
 import { Route as ApplyReviewRouteImport } from './routes/apply.review'
 import { Route as ApplyStoryRouteImport } from './routes/apply.story'
 import { Route as ApplyStoryReviewRouteImport } from './routes/apply.story-review'
+import { Route as ApplySuccessRouteImport } from './routes/apply.success'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -64,6 +65,11 @@ const ApplyStoryReviewRoute = ApplyStoryReviewRouteImport.update({
   path: '/apply/story-review',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApplySuccessRoute = ApplySuccessRouteImport.update({
+  id: '/apply/success',
+  path: '/apply/success',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -75,6 +81,7 @@ export interface FileRoutesByFullPath {
   '/apply/review': typeof ApplyReviewRoute
   '/apply/story': typeof ApplyStoryRoute
   '/apply/story-review': typeof ApplyStoryReviewRoute
+  '/apply/success': typeof ApplySuccessRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -86,6 +93,7 @@ export interface FileRoutesByTo {
   '/apply/review': typeof ApplyReviewRoute
   '/apply/story': typeof ApplyStoryRoute
   '/apply/story-review': typeof ApplyStoryReviewRoute
+  '/apply/success': typeof ApplySuccessRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -98,6 +106,7 @@ export interface FileRoutesById {
   '/apply/review': typeof ApplyReviewRoute
   '/apply/story': typeof ApplyStoryRoute
   '/apply/story-review': typeof ApplyStoryReviewRoute
+  '/apply/success': typeof ApplySuccessRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -111,6 +120,7 @@ export interface FileRouteTypes {
     | '/apply/review'
     | '/apply/story'
     | '/apply/story-review'
+    | '/apply/success'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -122,6 +132,7 @@ export interface FileRouteTypes {
     | '/apply/review'
     | '/apply/story'
     | '/apply/story-review'
+    | '/apply/success'
   id:
     | '__root__'
     | '/'
@@ -133,6 +144,7 @@ export interface FileRouteTypes {
     | '/apply/review'
     | '/apply/story'
     | '/apply/story-review'
+    | '/apply/success'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -145,6 +157,7 @@ export interface RootRouteChildren {
   ApplyReviewRoute: typeof ApplyReviewRoute
   ApplyStoryRoute: typeof ApplyStoryRoute
   ApplyStoryReviewRoute: typeof ApplyStoryReviewRoute
+  ApplySuccessRoute: typeof ApplySuccessRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -212,6 +225,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApplyStoryReviewRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/apply/success': {
+      id: '/apply/success'
+      path: '/apply/success'
+      fullPath: '/apply/success'
+      preLoaderRoute: typeof ApplySuccessRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -225,6 +245,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApplyReviewRoute: ApplyReviewRoute,
   ApplyStoryRoute: ApplyStoryRoute,
   ApplyStoryReviewRoute: ApplyStoryReviewRoute,
+  ApplySuccessRoute: ApplySuccessRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
