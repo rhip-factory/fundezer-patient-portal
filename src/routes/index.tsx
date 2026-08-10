@@ -32,6 +32,7 @@ export const Route = createFileRoute("/")({
 
 const DEMO_EMAIL = "amina.yusuf@email.com";
 const DEMO_PASSWORD = "fundezer";
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 function Login() {
   const navigate = useNavigate();
@@ -43,11 +44,12 @@ function Login() {
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (
-      email.trim().toLowerCase() !== DEMO_EMAIL ||
-      password !== DEMO_PASSWORD
-    ) {
-      setError("Those details don't match our records. Please try again.");
+    if (!EMAIL_PATTERN.test(email.trim())) {
+      setError("Please enter a valid email address.");
+      return;
+    }
+    if (!password.trim()) {
+      setError("Please enter your password.");
       return;
     }
     setError(null);
