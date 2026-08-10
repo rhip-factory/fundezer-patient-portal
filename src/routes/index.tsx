@@ -1,127 +1,129 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { HeartHandshake, ShieldCheck, Sparkles } from "lucide-react";
+import { useState } from "react";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { Loader2, Lock } from "lucide-react";
 
 import { FundezerLogo } from "@/components/fundezer-logo";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { usePortal } from "@/lib/portal-store";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Get help funding your treatment — FundEzer" },
+      { title: "Sign in to your FundEzer patient portal" },
       {
         name: "description",
         content:
-          "Apply for treatment sponsorship through FundEzer and connect with verified hospital support in Abuja.",
+          "Log in to the FundEzer patient portal to track your application, campaign funding and treatment updates.",
       },
-      { property: "og:title", content: "Get help funding your treatment" },
+      { property: "og:title", content: "Sign in to FundEzer" },
       {
         property: "og:description",
         content:
-          "Apply for treatment sponsorship through FundEzer and connect with verified hospital support in Abuja.",
+          "Log in to the FundEzer patient portal to track your application, campaign funding and treatment updates.",
       },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
-  component: Index,
+  component: Login,
 });
 
-const points = [
-  {
-    icon: ShieldCheck,
-    title: "Verified hospital partners",
-    body: "Every application is reviewed by a partner hospital in Abuja before a campaign goes live.",
-  },
-  {
-    icon: Sparkles,
-    title: "We help tell your story",
-    body: "Answer a few simple questions and FundEzer drafts a clear, respectful story for donors.",
-  },
-  {
-    icon: HeartHandshake,
-    title: "Funds go to your hospital",
-    body: "Donations are paid directly to your verified hospital, never to individuals.",
-  },
-];
+const DEMO_EMAIL = "amina.yusuf@email.com";
+const DEMO_PASSWORD = "fundezer";
 
-function Index() {
+function Login() {
   const navigate = useNavigate();
-  const { resetFlow, prefillSavedApplication } = usePortal();
+  const { profile } = usePortal();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  const submit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (
+      email.trim().toLowerCase() !== DEMO_EMAIL ||
+      password !== DEMO_PASSWORD
+    ) {
+      setError("Those details don't match our records. Please try again.");
+      return;
+    }
+    setError(null);
+    setLoading(true);
+    setTimeout(() => navigate({ to: "/portal" }), 500);
+  };
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="border-b border-border">
-        <div className="mx-auto grid max-w-6xl grid-cols-[minmax(0,1fr)_auto] items-center gap-4 px-4 py-4 sm:px-6">
-          <FundezerLogo className="h-7" />
-          <Link
-            to="/portal"
-            className="shrink-0 text-sm font-medium text-muted-foreground transition-colors hover:text-primary"
-          >
-            Patient portal
-          </Link>
+    <div className="grid min-h-screen place-items-center bg-secondary px-4 py-10">
+      <main className="w-full max-w-sm">
+        <div className="flex flex-col items-center">
+          <FundezerLogo className="h-9" />
+          <p className="mt-2 text-xs tracking-wide text-muted-foreground">
+            Patient Portal
+          </p>
         </div>
-      </header>
 
-      <main className="mx-auto max-w-6xl px-4 py-12 sm:px-6 sm:py-20">
-        <div className="grid gap-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,26rem)] lg:items-center">
-          <div className="max-w-xl">
-            <span className="inline-flex items-center gap-2 rounded-full bg-primary-soft px-3 py-1 text-xs font-medium text-primary">
-              Now available in Abuja
-            </span>
-            <h1 className="mt-5 text-4xl font-semibold leading-tight tracking-tight text-foreground sm:text-5xl">
-              Get help funding your treatment
-            </h1>
-            <p className="mt-4 text-lg leading-relaxed text-muted-foreground">
-              Apply for treatment sponsorship through FundEzer and connect with
-              verified hospital support.
-            </p>
+        <div className="mt-6 rounded-2xl border border-border bg-card p-6 shadow-sm">
+          <h1 className="text-xl font-semibold tracking-tight text-card-foreground">
+            Welcome back
+          </h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Sign in to track your application and treatment.
+          </p>
 
-            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-              <Button
-                size="lg"
-                onClick={() => {
-                  resetFlow();
-                  navigate({ to: "/apply/location" });
-                }}
-              >
-                Start application
-              </Button>
-              <Button
-                size="lg"
-                variant="outline"
-                onClick={() => {
-                  prefillSavedApplication();
-                  navigate({ to: "/apply/documents" });
-                }}
-              >
-                Continue application
-              </Button>
+          <form onSubmit={submit} className="mt-6 space-y-4">
+            <div className="space-y-1.5">
+              <Label htmlFor="email">Email address</Label>
+              <Input
+                id="email"
+                type="email"
+                autoComplete="email"
+                placeholder="you@email.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
             </div>
-            <p className="mt-4 text-sm text-muted-foreground">
-              Continuing picks up a saved application at the documents step.
-            </p>
-          </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="password">Password</Label>
+              <Input
+                id="password"
+                type="password"
+                autoComplete="current-password"
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+            </div>
 
-          <div className="space-y-4">
-            {points.map((p) => (
-              <div
-                key={p.title}
-                className="rounded-2xl border border-border bg-card p-5 shadow-sm"
-              >
-                <p.icon className="size-5 text-primary" />
-                <h2 className="mt-3 text-base font-semibold text-card-foreground">
-                  {p.title}
-                </h2>
-                <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
-                  {p.body}
-                </p>
-              </div>
-            ))}
+            {error && (
+              <p role="alert" className="text-sm text-destructive">
+                {error}
+              </p>
+            )}
+
+            <Button type="submit" size="lg" className="w-full" disabled={loading}>
+              {loading && <Loader2 className="mr-2 size-4 animate-spin" />}
+              {loading ? "Signing in…" : "Log in"}
+            </Button>
+          </form>
+
+          <div className="mt-5 rounded-lg bg-primary-soft px-3 py-2.5 text-xs leading-relaxed text-primary">
+            <span className="flex items-center gap-1.5 font-semibold">
+              <Lock className="size-3.5" /> Demo credentials
+            </span>
+            <span className="mt-1 block">
+              {DEMO_EMAIL} / {DEMO_PASSWORD}
+            </span>
           </div>
         </div>
 
-        <p className="mt-16 text-xs text-muted-foreground">
-          This is a demonstration prototype. All patient, campaign and hospital
-          data shown is fictional.
+        <p className="mt-6 text-center text-xs text-muted-foreground">
+          Demonstration prototype for {profile.fullName}. All patient, campaign
+          and hospital data shown is fictional.
         </p>
       </main>
     </div>
