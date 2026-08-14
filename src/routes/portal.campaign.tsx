@@ -1,8 +1,16 @@
+import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { Copy, Share2, Users } from "lucide-react";
+import { Copy, Facebook, Link2, Mail, Share2, Users, XIcon } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { campaign, naira } from "@/lib/portal-store";
 
 export const Route = createFileRoute("/portal/campaign")({
