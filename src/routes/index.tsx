@@ -95,6 +95,13 @@ function Login() {
         return;
       }
 
+      // Supabase returns an empty identities array when the email already
+      // has an account — so this was a wrong password, not a new patient.
+      if (signUp.data.user && signUp.data.user.identities?.length === 0) {
+        setError("That password is incorrect. Please try again.");
+        return;
+      }
+
       setNotice(
         "We sent a confirmation link to your email. Please confirm your address, then sign in.",
       );
