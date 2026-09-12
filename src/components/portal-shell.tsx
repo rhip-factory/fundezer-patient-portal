@@ -201,6 +201,7 @@ export function PortalShell({ children }: { children: ReactNode }) {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [logoutOpen, setLogoutOpen] = useState(false);
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const title = titles[pathname.replace(/\/$/, "") || "/portal"] ?? "Portal";
 
