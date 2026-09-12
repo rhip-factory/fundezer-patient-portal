@@ -77,6 +77,8 @@ function ReviewStep() {
   const [modalOpen, setModalOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const submitApplicationFn = useServerFn(submitApplication);
 
   const uploaded = documentSpecs.filter(
     (d) => flow.uploads[d.id]?.status === "uploaded",
