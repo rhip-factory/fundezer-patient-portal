@@ -82,10 +82,15 @@ function Login() {
       });
 
       if (signUp.error) {
+        const message = signUp.error.message;
         setError(
-          /password/i.test(signUp.error.message)
-            ? signUp.error.message
-            : "We could not sign you in. Please check your details and try again.",
+          /already registered|already exists|already been registered/i.test(
+            message,
+          )
+            ? "That password is incorrect. Please try again."
+            : /password/i.test(message)
+              ? message
+              : "We could not sign you in. Please check your details and try again.",
         );
         return;
       }
