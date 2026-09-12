@@ -1,55 +1,32 @@
-# Connect Patient Portal to the existing FundEzer backend
+# Connect the patient application to the shared FundEzer database
 
-## Goal
-Establish a backend connection between this Patient Portal project and the existing FundEzer Supabase project `jyoeyeeshllfaqzqeuzf` (created in another Lovable project), without creating a new backend, modifying the database, or changing the UI.
+Only the application part goes live. Every screen, route and interaction stays exactly as it is today; the campaign, treatment, documents, notifications and profile pages keep their sample content.
 
-## Current state
-- This Patient Portal is frontend-only.
-- `package.json` has no Supabase client dependencies.
-- `src/integrations/supabase/` does not exist.
-- No `.env` files are present.
-- The login form in `src/routes/index.tsx` uses local validation only.
-- `.lovable/project.json` shows no backend/project identifier.
-- Because no backend is currently attached, the "Connect an existing Supabase project" option is available in this project.
+## What changes for the patient
 
-## Supported method
-Yes — Lovable Cloud supports connecting this project to the existing FundEzer backend. The connection must be made inside the Lovable UI, not via chat or agent tools.
+1. **Real sign-in.** The login screen looks identical, but the email and password are now checked against the real FundEzer accounts. If the email has no account yet, an account is created and the person is signed in.
+2. **Real submission.** Pressing "Submit application" on the review step saves the application to the shared database instead of pretending. The submitting screen and success screen behave as they do now, just driven by the real save.
+3. **Their own record.** The first time someone submits, a patient record is created for their account (name, email, phone, date of birth, gender, city from what they entered) and linked to their login. Existing sample patient records are left untouched.
+4. **Application status page.** "Application status" now shows the real application: its reference, submitted date, hospital, and its current status from the database. The existing summary and progress timeline design stays; the timeline highlights the stage matching the real status.
+5. **Survives refresh.** Because the application lives in the database, refreshing or signing in again shows it.
+6. **Loading and errors.** The status page shows a quiet loading state, a plain-language message if the database can't be reached, and an empty state with a link to start an application if none exists.
 
-The flow is:
-1. Link the Supabase organization that owns `jyoeyeeshllfaqzqeuzf` to this Lovable workspace (one-time, workspace-owner/admin step).
-2. In this Patient Portal project, open **More > Cloud** and choose **"Already have a Supabase project? Connect it here"**.
-3. Select the existing Supabase project `jyoeyeeshllfaqzqeuzf` and confirm the connection.
+## Security
 
-## Exact steps to take inside Lovable
+- Every read and write runs as the signed-in patient, so the database's existing rules only ever return that patient's own application.
+- Nothing lets one patient request another patient's record; the application is always looked up through the signed-in account, never by an ID from the page.
+- No tables, columns or database rules are changed.
 
-### Step 1 — Link the Supabase organization to the workspace (if not already linked)
-- In the Lovable dashboard sidebar, go to **Connectors**.
-- Select **Supabase**.
-- Click **Connect Supabase** or **Manage Connected Organizations**.
-- Sign in to the Supabase account that owns project `jyoeyeeshllfaqzqeuzf` and authorize Lovable for that organization.
-- This makes all projects in that Supabase organization available to the workspace.
+## Technical notes
 
-### Step 2 — Connect this project to the existing Supabase project
-- Open this Patient Portal project in the Lovable editor.
-- Open **More > Cloud** from the left sidebar.
-- Click **"Already have a Supabase project? Connect it here"**.
-- In the **Linked Supabase organizations** dialog, click **Continue**.
-- Select the project whose identifier is `jyoeyeeshllfaqzqeuzf`.
-- Click **Connect**.
+- **Auth:** `src/routes/index.tsx` calls `supabase.auth.signInWithPassword`, and on "Invalid login credentials" falls back to `supabase.auth.signUp` then signs in. Sign-out on the portal shell clears the query cache and returns to `/`. Route paths are unchanged, so no `_authenticated` folder is introduced; `/portal` and `/apply` keep a light session check that redirects to `/` when there is no session.
+- **New file `src/lib/applications.functions.ts`:**
+  - `submitApplication` — `createServerFn` + `requireSupabaseAuth`. Reads `patients` by `user_id` through `context.supabase`. If absent, creates the row with `supabaseAdmin` (loaded inside the handler) using a generated `reference_code`, `display_name`, `urgency`, and `current_hospital_id` resolved by name from `hospitals`. Then inserts into `applications` (`patient_id`, `hospital_id`, `title`, `description` = generated story, `requested_amount`, `status: 'Submitted'`) under the caller's own client so `applications_patient_create` applies. Guards against a duplicate insert if an open application already exists.
+  - `getMyApplication` — `createServerFn` + `requireSupabaseAuth`, selects the caller's most recent application (plus hospital name) via RLS only.
+- **Wiring:** `apply.review.tsx` calls `submitApplication` in its existing submit handler (dialog spinner reused, `toast.error` on failure). `portal.application.tsx` uses `useQuery` + `useServerFn` for `getMyApplication`, mapping DB `application_status` onto the existing five-stage timeline. `portal-store` keeps its mock data for all other pages.
+- **Verify `src/start.ts`** registers the bearer-token `functionMiddleware`; add the generated attacher only if no equivalent exists.
+- **Email confirmation:** if the connected Supabase project requires email confirmation, self sign-up will ask the patient to confirm before the first submission. Turning that off is a Supabase dashboard setting on your side.
 
-After connecting, Lovable will manage the backend (database, auth, storage, edge functions) using that existing Supabase project. The service role key will be retrieved securely for server-side runtime use.
+## Testing after implementation
 
-## Important caveats
-- This can only be done because this project currently has no backend attached. A project already running on Lovable Cloud cannot use this flow.
-- If this project is ever connected to a different backend first, you must disconnect it in **Project Settings > Integrations** before reconnecting to `jyoeyeeshllfaqzqeuzf`.
-- The connection is not made through chat/agent tools; it requires the Supabase OAuth flow in the Lovable UI.
-- No new Supabase project is created, no tables are modified, and no UI or application code changes are made by this connection step alone.
-
-## If the option is unavailable
-If **More > Cloud** does not show the "Already have a Supabase project?" option, the most likely reasons are:
-- The Supabase organization is not linked to the workspace yet (return to Step 1).
-- This project already has a backend attached somewhere (check **Project Settings > Integrations > Supabase** and disconnect if needed).
-- The workspace does not have permission to access the Supabase organization containing `jyoeyeeshllfaqzqeuzf`.
-
-## Next step after connection
-Once the connection is established, this project will have access to the shared FundEzer database. Only then should application code be updated to use the generated Supabase client and authentication infrastructure.
+Sign up and sign in as a test account, submit an application end to end, confirm the row in `applications` is linked to that account, refresh the status page, check the status text matches the database, and confirm a second account sees only its own application.
