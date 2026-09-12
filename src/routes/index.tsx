@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
-import { usePortal } from "@/lib/portal-store";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -32,15 +31,53 @@ export const Route = createFileRoute("/")({
 });
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+type AuthMode = "login" | "signup";
 
 function Login() {
   const navigate = useNavigate();
-  const { profile } = usePortal();
+  const [mode, setMode] = useState<AuthMode>("login");
+  const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+
+  const changeMode = (nextMode: AuthMode) => {
+    setMode(nextMode);
+    setError(null);
+    setNotice(null);
+  };
+
+  const ensureProfile = async (
+    user: { id: string; email?: string; user_metadata: Record<string, unknown> },
+    preferredName?: string,
+  ) => {
+    const existing = await supabase
+      .from("profiles")
+      .select("id")
+      .eq("user_id", user.id)
+      .maybeSingle();
+    if (existing.error) throw existing.error;
+    if (existing.data) return;
+
+    const metadataName =
+      typeof user.user_metadata["full_name"] === "string"
+        ? user.user_metadata["full_name"]
+        : "";
+    const resolvedName =
+      preferredName?.trim() ||
+      metadataName.trim() ||
+      user.email?.split("@")[0] ||
+      "FundEzer patient";
+    const created = await supabase.from("profiles").insert({
+      user_id: user.id,
+      full_name: resolvedName,
+      email: user.email ?? null,
+    });
+    if (created.error) throw created.error;
+  };
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -53,63 +90,63 @@ function Login() {
       setError("Please enter your password.");
       return;
     }
+    if (mode === "signup" && !fullName.trim()) {
+      setError("Please enter your full name.");
+      return;
+    }
+    if (mode === "signup" && password.length < 6) {
+      setError("Your password must be at least 6 characters.");
+      return;
+    }
+    if (mode === "signup" && password !== confirmPassword) {
+      setError("The passwords do not match.");
+      return;
+    }
     setError(null);
     setNotice(null);
     setLoading(true);
 
     try {
-      const signIn = await supabase.auth.signInWithPassword({
-        email: address,
-        password,
-      });
-
-      if (!signIn.error) {
+      if (mode === "login") {
+        const signIn = await supabase.auth.signInWithPassword({
+          email: address,
+          password,
+        });
+        if (signIn.error) {
+          setError(
+            /invalid login credentials/i.test(signIn.error.message)
+              ? "The email or password is incorrect."
+              : signIn.error.message,
+          );
+          return;
+        }
+        await ensureProfile(signIn.data.user);
         navigate({ to: "/portal" });
         return;
       }
 
-      const invalid = /invalid login credentials/i.test(signIn.error.message);
-      if (!invalid) {
-        setError(signIn.error.message);
-        return;
-      }
-
-      // No account yet — create one, then sign in.
       const signUp = await supabase.auth.signUp({
         email: address,
         password,
-        options: { emailRedirectTo: window.location.origin },
+        options: {
+          emailRedirectTo: window.location.origin,
+          data: { full_name: fullName.trim() },
+        },
       });
-
       if (signUp.error) {
-        const message = signUp.error.message;
-        setError(
-          /already registered|already exists|already been registered/i.test(
-            message,
-          )
-            ? "That password is incorrect. Please try again."
-            : /password/i.test(message)
-              ? message
-              : "We could not sign you in. Please check your details and try again.",
-        );
+        setError(signUp.error.message);
         return;
       }
-
-      if (signUp.data.session) {
+      if (signUp.data.user?.identities?.length === 0) {
+        setError("An account already exists for this email. Log in instead.");
+        return;
+      }
+      if (signUp.data.session && signUp.data.user) {
+        await ensureProfile(signUp.data.user, fullName);
         navigate({ to: "/portal" });
         return;
       }
-
-      // Supabase returns an empty identities array when the email already
-      // has an account — so this was a wrong password, not a new patient.
-      if (signUp.data.user && signUp.data.user.identities?.length === 0) {
-        setError("That password is incorrect. Please try again.");
-        return;
-      }
-
-      setNotice(
-        "We sent a confirmation link to your email. Please confirm your address, then sign in.",
-      );
+      setNotice("Check your email to confirm your account, then return here to log in.");
     } catch {
       setError("We could not reach FundEzer right now. Please try again.");
     } finally {
@@ -129,13 +166,47 @@ function Login() {
 
         <div className="mt-6 rounded-2xl border border-border bg-card p-6 shadow-sm">
           <h1 className="text-xl font-semibold tracking-tight text-card-foreground">
-            Welcome back
+            {mode === "login" ? "Welcome back" : "Create your account"}
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Sign in to track your application and treatment.
+            {mode === "login"
+              ? "Sign in to track your application and treatment."
+              : "Register to apply for support and follow your care journey."}
           </p>
 
+          <div className="mt-5 grid grid-cols-2 rounded-lg bg-secondary p-1" aria-label="Account access">
+            <Button
+              type="button"
+              size="sm"
+              variant={mode === "login" ? "default" : "ghost"}
+              onClick={() => changeMode("login")}
+            >
+              Log in
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              variant={mode === "signup" ? "default" : "ghost"}
+              onClick={() => changeMode("signup")}
+            >
+              Create account
+            </Button>
+          </div>
+
           <form onSubmit={submit} className="mt-6 space-y-4">
+            {mode === "signup" && (
+              <div className="space-y-1.5">
+                <Label htmlFor="full-name">Full name</Label>
+                <Input
+                  id="full-name"
+                  autoComplete="name"
+                  placeholder="Your full name"
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                  required
+                />
+              </div>
+            )}
             <div className="space-y-1.5">
               <Label htmlFor="email">Email address</Label>
               <Input
@@ -153,13 +224,27 @@ function Login() {
               <Input
                 id="password"
                 type="password"
-                autoComplete="current-password"
+                autoComplete={mode === "login" ? "current-password" : "new-password"}
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
               />
             </div>
+            {mode === "signup" && (
+              <div className="space-y-1.5">
+                <Label htmlFor="confirm-password">Confirm password</Label>
+                <Input
+                  id="confirm-password"
+                  type="password"
+                  autoComplete="new-password"
+                  placeholder="••••••••"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  required
+                />
+              </div>
+            )}
 
             {error && (
               <p role="alert" className="text-sm text-destructive">
@@ -175,7 +260,13 @@ function Login() {
 
             <Button type="submit" size="lg" className="w-full" disabled={loading}>
               {loading && <Loader2 className="mr-2 size-4 animate-spin" />}
-              {loading ? "Signing in…" : "Log in"}
+              {loading
+                ? mode === "login"
+                  ? "Signing in…"
+                  : "Creating account…"
+                : mode === "login"
+                  ? "Log in"
+                  : "Create account"}
             </Button>
           </form>
 
@@ -184,15 +275,14 @@ function Login() {
               <Lock className="size-3.5" /> Secure sign in
             </span>
             <span className="mt-1 block">
-              Sign in with your FundEzer email and password. New here? Enter your
-              email and choose a password to create your account.
+               Your account details and medical application are protected and only
+               available to you and authorised FundEzer care teams.
             </span>
           </div>
         </div>
 
         <p className="mt-6 text-center text-xs text-muted-foreground">
-          Demonstration prototype for {profile.fullName}. All patient, campaign
-          and hospital data shown is fictional.
+          © FundEzer. Secure patient access.
         </p>
       </main>
     </div>

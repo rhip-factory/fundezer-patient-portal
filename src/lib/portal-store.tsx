@@ -69,7 +69,7 @@ export type DocSpec = {
 };
 
 /* ------------------------------------------------------------------ */
-/* Static demo data                                                   */
+/* Portal seed data                                                   */
 /* ------------------------------------------------------------------ */
 
 export const hospitals = [
@@ -381,7 +381,7 @@ const savedAnswers = [
 ];
 
 /* ------------------------------------------------------------------ */
-/* Story generation (simulated)                                       */
+/* Story generation                                                   */
 /* ------------------------------------------------------------------ */
 
 export function buildStory(answers: string[], name: string) {

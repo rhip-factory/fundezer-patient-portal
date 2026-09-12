@@ -130,7 +130,7 @@ function DocumentsPage() {
                 Document preview
               </p>
               <p className="mt-1 text-xs text-muted-foreground">
-                Previews are simulated in this prototype.
+                A preview is not available for this document.
               </p>
             </div>
           </div>
