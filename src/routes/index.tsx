@@ -6,6 +6,7 @@ import { FundezerLogo } from "@/components/fundezer-logo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { supabase } from "@/integrations/supabase/client";
 import { usePortal } from "@/lib/portal-store";
 
 export const Route = createFileRoute("/")({
@@ -154,6 +155,12 @@ function Login() {
               </p>
             )}
 
+            {notice && (
+              <p role="status" className="text-sm text-primary">
+                {notice}
+              </p>
+            )}
+
             <Button type="submit" size="lg" className="w-full" disabled={loading}>
               {loading && <Loader2 className="mr-2 size-4 animate-spin" />}
               {loading ? "Signing in…" : "Log in"}
@@ -165,7 +172,8 @@ function Login() {
               <Lock className="size-3.5" /> Demo credentials
             </span>
             <span className="mt-1 block">
-              {DEMO_EMAIL} / {DEMO_PASSWORD}
+              Sign in with your FundEzer email and password. New here? Enter your
+              email and choose a password to create your account.
             </span>
           </div>
         </div>
