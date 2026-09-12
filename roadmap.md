@@ -1,8 +1,10 @@
-# FundEzer Patient Portal roadmap
+# Roadmap
 
-## Open
-- Confirm whether the currently connected Supabase project (`btdhnaajdbrwvhgoxyqs`) is the user's "Fundezer" project.
-- If it is not, guide the user through disconnecting it and connecting the correct one via the Lovable UI.
+- [x] Connect the project to the shared FundEzer Supabase backend
+- [x] Real email/password sign-in (with self sign-up) on the login screen
+- [x] Application submission writes to the real `applications` table, linked to the signed-in patient
+- [x] Application status page reads the patient's own application (loading + error states)
+- [x] Portal is gated: signed-out visitors are sent back to the login screen; log out clears the session
+- [ ] Signed-in end-to-end check (submit + refresh) — blocked: no test account password for the shared backend
 
-## Done
-- Confirmed this Patient Portal already has an external Supabase project connected (ref `btdhnaajdbrwvhgoxyqs`).
+Other portal pages (campaign, treatment, documents, notifications, profile, settings) intentionally keep sample content.
