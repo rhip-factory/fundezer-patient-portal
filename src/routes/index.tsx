@@ -169,7 +169,7 @@ function Login() {
 
           <div className="mt-5 rounded-lg bg-primary-soft px-3 py-2.5 text-xs leading-relaxed text-primary">
             <span className="flex items-center gap-1.5 font-semibold">
-              <Lock className="size-3.5" /> Demo credentials
+              <Lock className="size-3.5" /> Secure sign in
             </span>
             <span className="mt-1 block">
               Sign in with your FundEzer email and password. New here? Enter your
