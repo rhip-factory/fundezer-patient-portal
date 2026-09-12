@@ -143,7 +143,7 @@ export const submitApplication = createServerFn({ method: "POST" })
       .from("applications")
       .select("id")
       .eq("patient_id", patientId)
-      .in("status", OPEN_STATUSES as unknown as string[])
+      .in("status", [...OPEN_STATUSES])
       .order("submitted_at", { ascending: false })
       .limit(1);
 
