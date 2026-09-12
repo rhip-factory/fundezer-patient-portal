@@ -30,8 +30,6 @@ export const Route = createFileRoute("/")({
   component: Login,
 });
 
-const DEMO_EMAIL = "amina.yusuf@email.com";
-const DEMO_PASSWORD = "fundezer";
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 function Login() {
@@ -40,11 +38,13 @@ function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  const submit = (e: React.FormEvent) => {
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!EMAIL_PATTERN.test(email.trim())) {
+    const address = email.trim();
+    if (!EMAIL_PATTERN.test(address)) {
       setError("Please enter a valid email address.");
       return;
     }
@@ -53,8 +53,55 @@ function Login() {
       return;
     }
     setError(null);
+    setNotice(null);
     setLoading(true);
-    setTimeout(() => navigate({ to: "/portal" }), 500);
+
+    try {
+      const signIn = await supabase.auth.signInWithPassword({
+        email: address,
+        password,
+      });
+
+      if (!signIn.error) {
+        navigate({ to: "/portal" });
+        return;
+      }
+
+      const invalid = /invalid login credentials/i.test(signIn.error.message);
+      if (!invalid) {
+        setError(signIn.error.message);
+        return;
+      }
+
+      // No account yet — create one, then sign in.
+      const signUp = await supabase.auth.signUp({
+        email: address,
+        password,
+        options: { emailRedirectTo: window.location.origin },
+      });
+
+      if (signUp.error) {
+        setError(
+          /password/i.test(signUp.error.message)
+            ? signUp.error.message
+            : "We could not sign you in. Please check your details and try again.",
+        );
+        return;
+      }
+
+      if (signUp.data.session) {
+        navigate({ to: "/portal" });
+        return;
+      }
+
+      setNotice(
+        "We sent a confirmation link to your email. Please confirm your address, then sign in.",
+      );
+    } catch {
+      setError("We could not reach FundEzer right now. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
