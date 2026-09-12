@@ -1,6 +1,9 @@
 import { useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { CheckCircle2, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 
 import { ApplyShell } from "@/components/apply-shell";
 import { Button } from "@/components/ui/button";
@@ -13,6 +16,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { submitApplication } from "@/lib/applications.functions";
 import { documentSpecs, usePortal } from "@/lib/portal-store";
 
 export const Route = createFileRoute("/apply/review")({
@@ -73,17 +77,46 @@ function ReviewStep() {
   const [modalOpen, setModalOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const submitApplicationFn = useServerFn(submitApplication);
 
   const uploaded = documentSpecs.filter(
     (d) => flow.uploads[d.id]?.status === "uploaded",
   );
 
-  const submit = () => {
+  const submit = async () => {
     setSubmitting(true);
-    setTimeout(() => {
+    try {
+      await submitApplicationFn({
+        data: {
+          title: `Treatment support for ${profile.fullName || "a patient"}`,
+          story: flow.story,
+          hospitalName: hospitalName,
+          country: flow.country || "Nigeria",
+          state: flow.state || "",
+          fullName: profile.fullName,
+          email: profile.email,
+          phone: profile.phone,
+          dateOfBirth: profile.dateOfBirth,
+          gender: profile.gender,
+          city: flow.state || "",
+          condition: flow.answers[0] ?? "",
+        },
+      });
+      await queryClient.invalidateQueries({ queryKey: ["my-application"] });
       markSubmitted();
       navigate({ to: "/apply/success" });
-    }, 1800);
+    } catch (error) {
+      setSubmitting(false);
+      setModalOpen(false);
+      const message =
+        error instanceof Error ? error.message : "Something went wrong.";
+      toast.error(
+        /unauthorized/i.test(message)
+          ? "Please sign in again before submitting your application."
+          : message,
+      );
+    }
   };
 
   return (

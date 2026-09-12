@@ -1,4 +1,5 @@
 import { useState, type ReactNode } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import {
   Bell,
@@ -39,6 +40,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { supabase } from "@/integrations/supabase/client";
 import { usePortal } from "@/lib/portal-store";
 import { cn } from "@/lib/utils";
 
@@ -199,13 +201,17 @@ export function PortalShell({ children }: { children: ReactNode }) {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [logoutOpen, setLogoutOpen] = useState(false);
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const title = titles[pathname.replace(/\/$/, "") || "/portal"] ?? "Portal";
 
-  const confirmLogout = () => {
+  const confirmLogout = async () => {
     setLogoutOpen(false);
     setDrawerOpen(false);
-    navigate({ to: "/" });
+    await queryClient.cancelQueries();
+    queryClient.clear();
+    await supabase.auth.signOut();
+    navigate({ to: "/", replace: true });
   };
 
   return (

@@ -6,6 +6,7 @@ import { FundezerLogo } from "@/components/fundezer-logo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { supabase } from "@/integrations/supabase/client";
 import { usePortal } from "@/lib/portal-store";
 
 export const Route = createFileRoute("/")({
@@ -30,8 +31,6 @@ export const Route = createFileRoute("/")({
   component: Login,
 });
 
-const DEMO_EMAIL = "amina.yusuf@email.com";
-const DEMO_PASSWORD = "fundezer";
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 function Login() {
@@ -40,11 +39,13 @@ function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  const submit = (e: React.FormEvent) => {
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!EMAIL_PATTERN.test(email.trim())) {
+    const address = email.trim();
+    if (!EMAIL_PATTERN.test(address)) {
       setError("Please enter a valid email address.");
       return;
     }
@@ -53,8 +54,67 @@ function Login() {
       return;
     }
     setError(null);
+    setNotice(null);
     setLoading(true);
-    setTimeout(() => navigate({ to: "/portal" }), 500);
+
+    try {
+      const signIn = await supabase.auth.signInWithPassword({
+        email: address,
+        password,
+      });
+
+      if (!signIn.error) {
+        navigate({ to: "/portal" });
+        return;
+      }
+
+      const invalid = /invalid login credentials/i.test(signIn.error.message);
+      if (!invalid) {
+        setError(signIn.error.message);
+        return;
+      }
+
+      // No account yet — create one, then sign in.
+      const signUp = await supabase.auth.signUp({
+        email: address,
+        password,
+        options: { emailRedirectTo: window.location.origin },
+      });
+
+      if (signUp.error) {
+        const message = signUp.error.message;
+        setError(
+          /already registered|already exists|already been registered/i.test(
+            message,
+          )
+            ? "That password is incorrect. Please try again."
+            : /password/i.test(message)
+              ? message
+              : "We could not sign you in. Please check your details and try again.",
+        );
+        return;
+      }
+
+      if (signUp.data.session) {
+        navigate({ to: "/portal" });
+        return;
+      }
+
+      // Supabase returns an empty identities array when the email already
+      // has an account — so this was a wrong password, not a new patient.
+      if (signUp.data.user && signUp.data.user.identities?.length === 0) {
+        setError("That password is incorrect. Please try again.");
+        return;
+      }
+
+      setNotice(
+        "We sent a confirmation link to your email. Please confirm your address, then sign in.",
+      );
+    } catch {
+      setError("We could not reach FundEzer right now. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -107,6 +167,12 @@ function Login() {
               </p>
             )}
 
+            {notice && (
+              <p role="status" className="text-sm text-primary">
+                {notice}
+              </p>
+            )}
+
             <Button type="submit" size="lg" className="w-full" disabled={loading}>
               {loading && <Loader2 className="mr-2 size-4 animate-spin" />}
               {loading ? "Signing in…" : "Log in"}
@@ -115,10 +181,11 @@ function Login() {
 
           <div className="mt-5 rounded-lg bg-primary-soft px-3 py-2.5 text-xs leading-relaxed text-primary">
             <span className="flex items-center gap-1.5 font-semibold">
-              <Lock className="size-3.5" /> Demo credentials
+              <Lock className="size-3.5" /> Secure sign in
             </span>
             <span className="mt-1 block">
-              {DEMO_EMAIL} / {DEMO_PASSWORD}
+              Sign in with your FundEzer email and password. New here? Enter your
+              email and choose a password to create your account.
             </span>
           </div>
         </div>
