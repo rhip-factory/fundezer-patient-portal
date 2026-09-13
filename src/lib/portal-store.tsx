@@ -2,10 +2,22 @@ import {
   createContext,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
   useState,
   type ReactNode,
 } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
+
+import { supabase } from "@/integrations/supabase/client";
+import {
+  getPortalOverview,
+  markAllNotificationsRead,
+  markNotificationRead,
+  savePortalProfile,
+  type PortalOverview,
+} from "@/lib/portal.functions";
 
 /* ------------------------------------------------------------------ */
 /* Types                                                              */
@@ -210,164 +222,20 @@ export const documentSpecs: DocSpec[] = [
   },
 ];
 
-export const campaign = {
-  title: "Help Amina complete her heart surgery",
-  hospital: "Cedarcrest Hospital, Abuja",
-  raised: 4850000,
-  goal: 12000000,
-  donors: 127,
-  diagnosis:
-    "Severe mitral valve defect confirmed by the cardiology team at Cedarcrest Hospital, Abuja.",
-  treatmentPlan:
-    "Mitral valve repair surgery with a 5-day inpatient stay, followed by eight weeks of cardiac rehabilitation and two follow-up reviews.",
-  story:
-    "In April 2026, Amina was diagnosed with a severe mitral valve defect after months of breathlessness and fatigue. Her cardiology team at Cedarcrest Hospital confirmed that valve repair surgery is the only path to a full recovery. Amina is a secondary school teacher and the primary carer for her younger brother, and the cost of surgery is far beyond what her family can raise alone.",
-};
-
-export const application = {
-  id: "FEZ-2026-00482",
-  submitted: "04 August 2026",
-  hospital: "Cedarcrest Hospital",
-  status: "Under hospital review",
-};
-
-export const treatmentUpdates = [
-  {
-    id: "t1",
-    title: "Treatment started",
-    date: "22 August 2026",
-    hospital: "Cedarcrest Hospital",
-    body: "Your hospital has confirmed that treatment has started. Your care team has admitted you for mitral valve repair surgery and will share progress notes after each review.",
-  },
-  {
-    id: "t2",
-    title: "Surgery date scheduled",
-    date: "18 August 2026",
-    hospital: "Cedarcrest Hospital",
-    body: "Cedarcrest Hospital scheduled your valve repair surgery for 22 August 2026. Please arrive by 7:00am with your admission letter.",
-  },
-  {
-    id: "t3",
-    title: "Pre-surgery assessment complete",
-    date: "12 August 2026",
-    hospital: "Cedarcrest Hospital",
-    body: "Your pre-surgery assessment was completed and your cardiology team confirmed you are fit for the planned procedure.",
-  },
-];
-
-const initialNotifications: PortalNotification[] = [
-  {
-    id: "n1",
-    kind: "treatment",
-    title: "New treatment update",
-    body: "Cedarcrest Hospital added a note to your treatment record.",
-    time: "2 hours ago",
-    read: false,
-    target: "/portal/treatment",
-  },
-  {
-    id: "n2",
-    kind: "donation",
-    title: "Donation received",
-    body: "₦50,000 was donated to your campaign by Anonymous.",
-    time: "5 hours ago",
-    read: false,
-    target: "/portal/campaign",
-  },
-  {
-    id: "n3",
-    kind: "campaign",
-    title: "Your campaign is now live",
-    body: "Your campaign is published and accepting donations.",
-    time: "Yesterday",
-    read: false,
-    target: "/portal/campaign",
-  },
-  {
-    id: "n4",
-    kind: "application",
-    title: "Your application has been approved",
-    body: "Cedarcrest Hospital verified your application details.",
-    time: "2 days ago",
-    read: true,
-    target: "/portal/application",
-  },
-  {
-    id: "n5",
-    kind: "application",
-    title: "Your application has been received",
-    body: "Application FEZ-2026-00482 was submitted successfully.",
-    time: "4 August 2026",
-    read: true,
-    target: "/portal/application",
-  },
-];
-
-const initialDocuments: PortalDocument[] = [
-  {
-    id: "d1",
-    name: "Cardiology diagnosis report",
-    category: "Medical",
-    type: "PDF · 1.2 MB",
-    date: "04 Aug 2026",
-    status: "Verified",
-  },
-  {
-    id: "d2",
-    name: "Laboratory results",
-    category: "Medical",
-    type: "PDF · 640 KB",
-    date: "04 Aug 2026",
-    status: "Verified",
-  },
-  {
-    id: "d3",
-    name: "National ID card",
-    category: "Identity",
-    type: "JPG · 820 KB",
-    date: "03 Aug 2026",
-    status: "Verified",
-  },
-  {
-    id: "d4",
-    name: "Proof of address",
-    category: "Identity",
-    type: "PDF · 310 KB",
-    date: "03 Aug 2026",
-    status: "Under review",
-  },
-  {
-    id: "d5",
-    name: "Surgery admission letter",
-    category: "Treatment",
-    type: "PDF · 220 KB",
-    date: "22 Aug 2026",
-    status: "Verified",
-  },
-  {
-    id: "d6",
-    name: "Guardian consent form",
-    category: "Supporting",
-    type: "PDF · 180 KB",
-    date: "03 Aug 2026",
-    status: "Action needed",
-  },
-];
-
-const initialProfile: PatientProfile = {
-  fullName: "Amina Yusuf",
-  email: "amina.yusuf@email.com",
-  phone: "+234 803 114 2288",
-  nin: "2381 5540 9917",
-  dateOfBirth: "1992-03-14",
-  gender: "Female",
-  address: "18 Ademola Crescent, Wuse II, Abuja",
-  emergencyName: "Fatima Yusuf",
-  emergencyPhone: "+234 806 552 0091",
-  emergencyRelation: "Sister",
-  kinName: "Ibrahim Yusuf",
-  kinPhone: "+234 802 771 3345",
-  kinRelation: "Father",
+const emptyProfile: PatientProfile = {
+  fullName: "",
+  email: "",
+  phone: "",
+  nin: "",
+  dateOfBirth: "",
+  gender: "",
+  address: "",
+  emergencyName: "",
+  emergencyPhone: "",
+  emergencyRelation: "",
+  kinName: "",
+  kinPhone: "",
+  kinRelation: "",
 };
 
 const savedAnswers = [
@@ -455,7 +323,11 @@ type PortalContextValue = {
   requiredTotal: number;
   missingRequired: DocSpec[];
   hospitalName: string;
-  /* portal */
+  /* live portal data */
+  portal: PortalOverview | null;
+  isPortalLoading: boolean;
+  portalError: string | null;
+  refreshPortal: () => void;
   notifications: PortalNotification[];
   unreadCount: number;
   markRead: (id: string) => void;
@@ -463,18 +335,173 @@ type PortalContextValue = {
   documents: PortalDocument[];
   profile: PatientProfile;
   updateProfile: (next: PatientProfile) => void;
+  savingProfile: boolean;
   sidebarCollapsed: boolean;
   toggleSidebar: () => void;
 };
 
 const PortalContext = createContext<PortalContextValue | null>(null);
 
+/* ------------------------------------------------------------------ */
+/* Mapping database records onto the portal UI shapes                  */
+/* ------------------------------------------------------------------ */
+
+const DOCUMENT_CATEGORIES: Record<string, PortalDocument["category"]> = {
+  "Medical Report": "Medical",
+  Prescription: "Medical",
+  "Laboratory Result": "Medical",
+  "Imaging Report": "Medical",
+  "Identification Document": "Identity",
+  "Government ID": "Identity",
+  Picture: "Supporting",
+  Video: "Supporting",
+  "Referral Letter": "Treatment",
+  Other: "Supporting",
+};
+
+const shortDate = (value: string | null) => {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  return date.toLocaleDateString("en-GB", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
+};
+
+export const relativeTime = (value: string) => {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  const diff = Date.now() - date.getTime();
+  const hours = Math.floor(diff / 3_600_000);
+  if (hours < 1) return "Just now";
+  if (hours === 1) return "1 hour ago";
+  if (hours < 24) return `${hours} hours ago`;
+  const days = Math.floor(hours / 24);
+  if (days === 1) return "Yesterday";
+  if (days < 7) return `${days} days ago`;
+  return shortDate(value);
+};
+
+const fileMeta = (mime: string | null, bytes: number | null) => {
+  const kind = mime?.split("/")[1]?.toUpperCase() ?? "FILE";
+  if (!bytes) return kind;
+  const mb = bytes / 1_048_576;
+  return `${kind} · ${mb >= 1 ? `${mb.toFixed(1)} MB` : `${Math.round(bytes / 1024)} KB`}`;
+};
+
+function notificationKind(type: string, entity: string | null): NotificationKind {
+  const value = `${type} ${entity ?? ""}`.toLowerCase();
+  if (value.includes("donat")) return "donation";
+  if (value.includes("campaign")) return "campaign";
+  if (value.includes("treatment") || value.includes("transfer"))
+    return "treatment";
+  return "application";
+}
+
+const NOTIFICATION_TARGETS: Record<NotificationKind, string> = {
+  application: "/portal/application",
+  campaign: "/portal/campaign",
+  donation: "/portal/campaign",
+  treatment: "/portal/treatment",
+};
+
+function toNotifications(overview: PortalOverview | null): PortalNotification[] {
+  return (overview?.notifications ?? []).map((n) => {
+    const kind = notificationKind(n.notificationType, n.relatedEntityType);
+    return {
+      id: n.id,
+      kind,
+      title: n.title,
+      body: n.message,
+      time: relativeTime(n.createdAt),
+      read: n.isRead,
+      target: NOTIFICATION_TARGETS[kind],
+    };
+  });
+}
+
+function toDocuments(overview: PortalOverview | null): PortalDocument[] {
+  return (overview?.documents ?? []).map((d) => ({
+    id: d.id,
+    name: d.title,
+    category: DOCUMENT_CATEGORIES[d.documentType] ?? "Supporting",
+    type: fileMeta(d.mimeType, d.fileSizeBytes),
+    date: shortDate(d.createdAt),
+    status: "Verified",
+  }));
+}
+
+function toProfile(
+  overview: PortalOverview | null,
+  current: PatientProfile,
+): PatientProfile {
+  if (!overview) return current;
+  const p = overview.profile;
+  const patient = overview.patient;
+  return {
+    ...current,
+    fullName: p?.fullName || patient?.fullName || patient?.displayName || "",
+    email: p?.email || patient?.email || overview.email || "",
+    phone: p?.phone || patient?.phone || "",
+    dateOfBirth: patient?.dateOfBirth ?? current.dateOfBirth,
+    gender: patient?.gender ?? current.gender,
+    address:
+      current.address ||
+      [p?.city || patient?.city, p?.state || patient?.state]
+        .filter(Boolean)
+        .join(", "),
+  };
+}
+
 export function PortalProvider({ children }: { children: ReactNode }) {
   const [flow, setFlow] = useState<FlowState>(initialFlow);
-  const [notifications, setNotifications] = useState(initialNotifications);
-  const [documents] = useState(initialDocuments);
-  const [profile, setProfile] = useState(initialProfile);
+  const [profileDraft, setProfileDraft] = useState<PatientProfile>(emptyProfile);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [hasSession, setHasSession] = useState(false);
+  const [savingProfile, setSavingProfile] = useState(false);
+  const [readOverrides, setReadOverrides] = useState<Record<string, boolean>>({});
+
+  const queryClient = useQueryClient();
+  const fetchOverview = useServerFn(getPortalOverview);
+  const saveProfileFn = useServerFn(savePortalProfile);
+  const markReadFn = useServerFn(markNotificationRead);
+  const markAllReadFn = useServerFn(markAllNotificationsRead);
+
+  /* The portal only queries the database once a patient is signed in. */
+  useEffect(() => {
+    let active = true;
+    supabase.auth.getSession().then(({ data }) => {
+      if (active) setHasSession(!!data.session);
+    });
+    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
+      setHasSession(!!session);
+    });
+    return () => {
+      active = false;
+      sub.subscription.unsubscribe();
+    };
+  }, []);
+
+  const overviewQuery = useQuery({
+    queryKey: ["portal-overview"],
+    queryFn: () => fetchOverview({}),
+    enabled: hasSession,
+  });
+
+  const overview = overviewQuery.data ?? null;
+
+  /* Keep the editable profile in step with the saved record. */
+  useEffect(() => {
+    if (!overview) return;
+    setProfileDraft((prev) => toProfile(overview, prev));
+  }, [overview]);
+
+  const refreshPortal = useCallback(() => {
+    void queryClient.invalidateQueries({ queryKey: ["portal-overview"] });
+    void queryClient.invalidateQueries({ queryKey: ["my-application"] });
+  }, [queryClient]);
 
   const startUpload = useCallback((id: string) => {
     const spec = documentSpecs.find((d) => d.id === id);
@@ -507,10 +534,60 @@ export function PortalProvider({ children }: { children: ReactNode }) {
     }, 220);
   }, []);
 
+  const updateProfile = useCallback(
+    (next: PatientProfile) => {
+      setProfileDraft(next);
+      if (!hasSession) return;
+      const [city, state] = next.address.split(",").map((p) => p.trim());
+      setSavingProfile(true);
+      void saveProfileFn({
+        data: {
+          fullName: next.fullName,
+          email: next.email,
+          phone: next.phone,
+          city: city ?? "",
+          state: state ?? "",
+        },
+      })
+        .then(() => refreshPortal())
+        .catch((error: unknown) => {
+          console.error("[portal] profile save failed", error);
+        })
+        .finally(() => setSavingProfile(false));
+    },
+    [hasSession, refreshPortal, saveProfileFn],
+  );
+
+  const markRead = useCallback(
+    (id: string) => {
+      setReadOverrides((prev) => ({ ...prev, [id]: true }));
+      void markReadFn({ data: { id } })
+        .then(() => refreshPortal())
+        .catch((error: unknown) =>
+          console.error("[portal] mark read failed", error),
+        );
+    },
+    [markReadFn, refreshPortal],
+  );
+
+  const markAllRead = useCallback(() => {
+    const all: Record<string, boolean> = {};
+    for (const n of overview?.notifications ?? []) all[n.id] = true;
+    setReadOverrides(all);
+    void markAllReadFn({})
+      .then(() => refreshPortal())
+      .catch((error: unknown) =>
+        console.error("[portal] mark all read failed", error),
+      );
+  }, [markAllReadFn, overview, refreshPortal]);
+
   const value = useMemo<PortalContextValue>(() => {
     const requiredSpecs = documentSpecs.filter((d) => d.required);
     const missingRequired = requiredSpecs.filter(
       (d) => flow.uploads[d.id]?.status !== "uploaded",
+    );
+    const notifications = toNotifications(overview).map((n) =>
+      readOverrides[n.id] ? { ...n, read: true } : n,
     );
     return {
       flow,
@@ -535,10 +612,10 @@ export function PortalProvider({ children }: { children: ReactNode }) {
       prefillSavedApplication: () =>
         setFlow({
           country: "Nigeria",
-          state: "Abuja",
-          hospitalId: "cedarcrest",
+          state: overview?.patient?.state ?? "Abuja",
+          hospitalId: null,
           answers: [...savedAnswers],
-          story: buildStory(savedAnswers, initialProfile.fullName),
+          story: buildStory(savedAnswers, profileDraft.fullName),
           uploads: emptyUploads(),
           submitted: false,
         }),
@@ -547,22 +624,44 @@ export function PortalProvider({ children }: { children: ReactNode }) {
       missingRequired,
       hospitalName:
         hospitals.find((h) => h.id === flow.hospitalId)?.name ??
-        application.hospital,
+        overview?.application?.hospitalName ??
+        overview?.patient?.hospitalName ??
+        "Your hospital",
+      portal: overview,
+      isPortalLoading: hasSession && overviewQuery.isPending,
+      portalError: overviewQuery.error
+        ? overviewQuery.error instanceof Error
+          ? overviewQuery.error.message
+          : "We could not load your information right now."
+        : null,
+      refreshPortal,
       notifications,
       unreadCount: notifications.filter((n) => !n.read).length,
-      markRead: (id) =>
-        setNotifications((prev) =>
-          prev.map((n) => (n.id === id ? { ...n, read: true } : n)),
-        ),
-      markAllRead: () =>
-        setNotifications((prev) => prev.map((n) => ({ ...n, read: true }))),
-      documents,
-      profile,
-      updateProfile: setProfile,
+      markRead,
+      markAllRead,
+      documents: toDocuments(overview),
+      profile: profileDraft,
+      updateProfile,
+      savingProfile,
       sidebarCollapsed,
       toggleSidebar: () => setSidebarCollapsed((v) => !v),
     };
-  }, [flow, notifications, documents, profile, sidebarCollapsed, startUpload]);
+  }, [
+    flow,
+    overview,
+    overviewQuery.isPending,
+    overviewQuery.error,
+    hasSession,
+    readOverrides,
+    profileDraft,
+    savingProfile,
+    sidebarCollapsed,
+    startUpload,
+    updateProfile,
+    markRead,
+    markAllRead,
+    refreshPortal,
+  ]);
 
   return (
     <PortalContext.Provider value={value}>{children}</PortalContext.Provider>
@@ -576,3 +675,4 @@ export function usePortal() {
 }
 
 export const naira = (value: number) => `₦${value.toLocaleString("en-NG")}`;
+
