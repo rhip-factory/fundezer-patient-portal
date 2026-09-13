@@ -2,10 +2,22 @@ import {
   createContext,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
   useState,
   type ReactNode,
 } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
+
+import { supabase } from "@/integrations/supabase/client";
+import {
+  getPortalOverview,
+  markAllNotificationsRead,
+  markNotificationRead,
+  savePortalProfile,
+  type PortalOverview,
+} from "@/lib/portal.functions";
 
 /* ------------------------------------------------------------------ */
 /* Types                                                              */
@@ -210,164 +222,20 @@ export const documentSpecs: DocSpec[] = [
   },
 ];
 
-export const campaign = {
-  title: "Help Amina complete her heart surgery",
-  hospital: "Cedarcrest Hospital, Abuja",
-  raised: 4850000,
-  goal: 12000000,
-  donors: 127,
-  diagnosis:
-    "Severe mitral valve defect confirmed by the cardiology team at Cedarcrest Hospital, Abuja.",
-  treatmentPlan:
-    "Mitral valve repair surgery with a 5-day inpatient stay, followed by eight weeks of cardiac rehabilitation and two follow-up reviews.",
-  story:
-    "In April 2026, Amina was diagnosed with a severe mitral valve defect after months of breathlessness and fatigue. Her cardiology team at Cedarcrest Hospital confirmed that valve repair surgery is the only path to a full recovery. Amina is a secondary school teacher and the primary carer for her younger brother, and the cost of surgery is far beyond what her family can raise alone.",
-};
-
-export const application = {
-  id: "FEZ-2026-00482",
-  submitted: "04 August 2026",
-  hospital: "Cedarcrest Hospital",
-  status: "Under hospital review",
-};
-
-export const treatmentUpdates = [
-  {
-    id: "t1",
-    title: "Treatment started",
-    date: "22 August 2026",
-    hospital: "Cedarcrest Hospital",
-    body: "Your hospital has confirmed that treatment has started. Your care team has admitted you for mitral valve repair surgery and will share progress notes after each review.",
-  },
-  {
-    id: "t2",
-    title: "Surgery date scheduled",
-    date: "18 August 2026",
-    hospital: "Cedarcrest Hospital",
-    body: "Cedarcrest Hospital scheduled your valve repair surgery for 22 August 2026. Please arrive by 7:00am with your admission letter.",
-  },
-  {
-    id: "t3",
-    title: "Pre-surgery assessment complete",
-    date: "12 August 2026",
-    hospital: "Cedarcrest Hospital",
-    body: "Your pre-surgery assessment was completed and your cardiology team confirmed you are fit for the planned procedure.",
-  },
-];
-
-const initialNotifications: PortalNotification[] = [
-  {
-    id: "n1",
-    kind: "treatment",
-    title: "New treatment update",
-    body: "Cedarcrest Hospital added a note to your treatment record.",
-    time: "2 hours ago",
-    read: false,
-    target: "/portal/treatment",
-  },
-  {
-    id: "n2",
-    kind: "donation",
-    title: "Donation received",
-    body: "₦50,000 was donated to your campaign by Anonymous.",
-    time: "5 hours ago",
-    read: false,
-    target: "/portal/campaign",
-  },
-  {
-    id: "n3",
-    kind: "campaign",
-    title: "Your campaign is now live",
-    body: "Your campaign is published and accepting donations.",
-    time: "Yesterday",
-    read: false,
-    target: "/portal/campaign",
-  },
-  {
-    id: "n4",
-    kind: "application",
-    title: "Your application has been approved",
-    body: "Cedarcrest Hospital verified your application details.",
-    time: "2 days ago",
-    read: true,
-    target: "/portal/application",
-  },
-  {
-    id: "n5",
-    kind: "application",
-    title: "Your application has been received",
-    body: "Application FEZ-2026-00482 was submitted successfully.",
-    time: "4 August 2026",
-    read: true,
-    target: "/portal/application",
-  },
-];
-
-const initialDocuments: PortalDocument[] = [
-  {
-    id: "d1",
-    name: "Cardiology diagnosis report",
-    category: "Medical",
-    type: "PDF · 1.2 MB",
-    date: "04 Aug 2026",
-    status: "Verified",
-  },
-  {
-    id: "d2",
-    name: "Laboratory results",
-    category: "Medical",
-    type: "PDF · 640 KB",
-    date: "04 Aug 2026",
-    status: "Verified",
-  },
-  {
-    id: "d3",
-    name: "National ID card",
-    category: "Identity",
-    type: "JPG · 820 KB",
-    date: "03 Aug 2026",
-    status: "Verified",
-  },
-  {
-    id: "d4",
-    name: "Proof of address",
-    category: "Identity",
-    type: "PDF · 310 KB",
-    date: "03 Aug 2026",
-    status: "Under review",
-  },
-  {
-    id: "d5",
-    name: "Surgery admission letter",
-    category: "Treatment",
-    type: "PDF · 220 KB",
-    date: "22 Aug 2026",
-    status: "Verified",
-  },
-  {
-    id: "d6",
-    name: "Guardian consent form",
-    category: "Supporting",
-    type: "PDF · 180 KB",
-    date: "03 Aug 2026",
-    status: "Action needed",
-  },
-];
-
-const initialProfile: PatientProfile = {
-  fullName: "Amina Yusuf",
-  email: "amina.yusuf@email.com",
-  phone: "+234 803 114 2288",
-  nin: "2381 5540 9917",
-  dateOfBirth: "1992-03-14",
-  gender: "Female",
-  address: "18 Ademola Crescent, Wuse II, Abuja",
-  emergencyName: "Fatima Yusuf",
-  emergencyPhone: "+234 806 552 0091",
-  emergencyRelation: "Sister",
-  kinName: "Ibrahim Yusuf",
-  kinPhone: "+234 802 771 3345",
-  kinRelation: "Father",
+const emptyProfile: PatientProfile = {
+  fullName: "",
+  email: "",
+  phone: "",
+  nin: "",
+  dateOfBirth: "",
+  gender: "",
+  address: "",
+  emergencyName: "",
+  emergencyPhone: "",
+  emergencyRelation: "",
+  kinName: "",
+  kinPhone: "",
+  kinRelation: "",
 };
 
 const savedAnswers = [
