@@ -309,7 +309,15 @@ export const getPortalOverview = createServerFn({ method: "POST" })
       (id && names.get(id)) || null;
 
     /* transfer events for the patient's own transfers (RLS-scoped) */
-    let events: PortalTransfer["events"] & { transfer_id: string }[] = [] as never;
+    type EventRow = {
+      id: string;
+      transfer_id: string;
+      status: string;
+      note: string | null;
+      actor_label: string | null;
+      occurred_at: string;
+    };
+    let events: EventRow[] = [];
     if (transferRows.length > 0) {
       const { data } = await supabase
         .from("transfer_events")
@@ -319,7 +327,7 @@ export const getPortalOverview = createServerFn({ method: "POST" })
           transferRows.map((t) => t.id),
         )
         .order("occurred_at", { ascending: false });
-      events = (data ?? []) as never;
+      events = (data ?? []) as EventRow[];
     }
 
     /* Donation totals for the patient's own campaign. Individual donor rows
@@ -439,11 +447,7 @@ export const getPortalOverview = createServerFn({ method: "POST" })
         completedAt: t.completed_at,
         fromHospital: nameOf(t.originating_hospital_id),
         toHospital: nameOf(t.receiving_hospital_id),
-        events: (events as unknown as (PortalTransfer["events"][number] & {
-          transfer_id: string;
-          actor_label: string | null;
-          occurred_at: string;
-        })[])
+        events: events
           .filter((e) => e.transfer_id === t.id)
           .map((e) => ({
             id: e.id,
