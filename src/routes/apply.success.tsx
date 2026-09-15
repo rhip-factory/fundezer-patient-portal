@@ -57,13 +57,13 @@ function SuccessStep() {
           <div className="flex items-center justify-between gap-3">
             <dt className="text-sm text-muted-foreground">Application ID</dt>
             <dd className="text-sm font-semibold text-foreground">
-              {application.id}
+              {application?.reference ?? "Being generated"}
             </dd>
           </div>
           <div className="flex items-center justify-between gap-3">
             <dt className="text-sm text-muted-foreground">Submitted</dt>
             <dd className="text-sm font-medium text-foreground">
-              {application.submitted}
+              {submittedOn}
             </dd>
           </div>
         </dl>
