@@ -11,7 +11,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { campaign, naira } from "@/lib/portal-store";
+import { naira, relativeTime, usePortal } from "@/lib/portal-store";
 
 export const Route = createFileRoute("/portal/campaign")({
   head: () => ({
@@ -32,20 +32,20 @@ export const Route = createFileRoute("/portal/campaign")({
   component: CampaignPage,
 });
 
-const donations = [
-  { id: "g1", name: "Anonymous", amount: 50000, time: "5 hours ago" },
-  { id: "g2", name: "Chidi O.", amount: 25000, time: "Yesterday" },
-  { id: "g3", name: "Grace A.", amount: 100000, time: "2 days ago" },
-  { id: "g4", name: "Anonymous", amount: 15000, time: "3 days ago" },
-  { id: "g5", name: "Musa I.", amount: 200000, time: "4 days ago" },
-];
-
 function CampaignPage() {
-  const percent = Math.round((campaign.raised / campaign.goal) * 100);
-  const link = "https://fundezer.app/c/amina-yusuf";
+  const { portal, isPortalLoading, portalError, hospitalName } = usePortal();
+  const campaign = portal?.campaign ?? null;
   const [shareOpen, setShareOpen] = useState(false);
 
-  const shareText = `Support ${campaign.title} on FundEzer`;
+  const goal = campaign?.target ?? 0;
+  const raised = campaign?.raised ?? 0;
+  const percent = goal > 0 ? Math.min(100, Math.round((raised / goal) * 100)) : 0;
+  const donations = campaign?.recentDonations ?? [];
+  const link = campaign?.slug
+    ? `https://fundezer.app/c/${campaign.slug}`
+    : "https://fundezer.app";
+
+  const shareText = `Support ${campaign?.title ?? "this campaign"} on FundEzer`;
   const shareBody = `Hi,\n\nI’m raising funds for my treatment through FundEzer. Please consider supporting my campaign:\n\n${link}`;
 
   const copyLink = async () => {
