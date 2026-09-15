@@ -210,7 +210,7 @@ function CampaignPage() {
           YOUR STORY
         </h3>
         <p className="mt-3 text-sm leading-relaxed text-card-foreground">
-          {campaign.story}
+          {campaign.story ?? "Your story will appear here once it is published."}
         </p>
         {portal?.patient?.condition && (
           <div className="mt-5 border-t border-border pt-4">
@@ -229,6 +229,11 @@ function CampaignPage() {
             RECENT DONATIONS
           </h3>
         </div>
+        {donations.length === 0 && (
+          <p className="mt-4 text-sm text-muted-foreground">
+            No donations yet. Share your campaign to get started.
+          </p>
+        )}
         <ul className="mt-4 divide-y divide-border">
           {donations.map((d) => (
             <li
