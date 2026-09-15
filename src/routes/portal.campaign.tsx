@@ -88,16 +88,50 @@ function CampaignPage() {
     window.open(href, "_blank", "noopener,noreferrer,width=600,height=400");
   };
 
+  if (isPortalLoading) {
+    return (
+      <div className="rounded-2xl border border-border bg-card p-10 text-center">
+        <p className="text-sm text-muted-foreground">Loading your campaign…</p>
+      </div>
+    );
+  }
+
+  if (portalError) {
+    return (
+      <div className="rounded-2xl border border-border bg-card p-8 text-center">
+        <p className="text-sm font-medium text-foreground">
+          We could not load your campaign
+        </p>
+        <p className="mt-1 text-sm text-muted-foreground">{portalError}</p>
+      </div>
+    );
+  }
+
+  if (!campaign) {
+    return (
+      <div className="rounded-2xl border border-border bg-card p-8 text-center">
+        <p className="text-sm font-medium text-foreground">
+          Your campaign is not live yet
+        </p>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Once your application is approved, your campaign will appear here.
+        </p>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <section className="rounded-2xl border border-border bg-card p-5 sm:p-7">
         <span className="inline-flex items-center gap-1.5 rounded-full bg-success-soft px-3 py-1 text-xs font-medium text-success">
-          Live
+          {campaign.status}
         </span>
         <h2 className="mt-3 text-xl font-semibold text-card-foreground">
           {campaign.title}
         </h2>
-        <p className="mt-1 text-sm text-muted-foreground">{campaign.hospital}</p>
+        <p className="mt-1 text-sm text-muted-foreground">
+          {campaign.hospitalName ?? hospitalName}
+        </p>
 
         <p className="mt-5 text-3xl font-semibold text-card-foreground">
           {naira(campaign.raised)}
