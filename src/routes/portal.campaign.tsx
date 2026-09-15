@@ -137,7 +137,7 @@ function CampaignPage() {
           {naira(campaign.raised)}
         </p>
         <p className="text-sm text-muted-foreground">
-          raised of {naira(campaign.goal)} goal
+          raised of {naira(goal)} goal
         </p>
         <div className="mt-4 h-2.5 w-full overflow-hidden rounded-full bg-secondary">
           <div
@@ -149,7 +149,7 @@ function CampaignPage() {
           {[
             ["Funded", `${percent}%`],
             ["Donors", `${campaign.donors}`],
-            ["Remaining", naira(campaign.goal - campaign.raised)],
+            ["Remaining", naira(Math.max(0, goal - raised))],
           ].map(([label, value]) => (
             <div key={label} className="rounded-xl bg-secondary/60 px-4 py-3">
               <p className="text-xs text-muted-foreground">{label}</p>
@@ -212,10 +212,14 @@ function CampaignPage() {
         <p className="mt-3 text-sm leading-relaxed text-card-foreground">
           {campaign.story}
         </p>
-        <div className="mt-5 border-t border-border pt-4">
-          <p className="text-xs text-muted-foreground">Treatment plan</p>
-          <p className="mt-1 text-sm text-foreground">{campaign.treatmentPlan}</p>
-        </div>
+        {portal?.patient?.condition && (
+          <div className="mt-5 border-t border-border pt-4">
+            <p className="text-xs text-muted-foreground">Treatment</p>
+            <p className="mt-1 text-sm text-foreground">
+              {portal.patient.condition}
+            </p>
+          </div>
+        )}
       </section>
 
       <section className="rounded-2xl border border-border bg-card p-5 sm:p-6">
@@ -235,7 +239,9 @@ function CampaignPage() {
                 <p className="truncate text-sm font-medium text-foreground">
                   {d.name}
                 </p>
-                <p className="text-xs text-muted-foreground">{d.time}</p>
+                <p className="text-xs text-muted-foreground">
+                  {relativeTime(d.createdAt)}
+                </p>
               </div>
               <p className="shrink-0 text-sm font-semibold text-primary">
                 {naira(d.amount)}
