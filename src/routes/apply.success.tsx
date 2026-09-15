@@ -3,7 +3,7 @@ import { CheckCircle2, ClipboardList, Clock, Mail } from "lucide-react";
 
 import { ApplyShell } from "@/components/apply-shell";
 import { Button } from "@/components/ui/button";
-import { application, usePortal } from "@/lib/portal-store";
+import { usePortal } from "@/lib/portal-store";
 
 export const Route = createFileRoute("/apply/success")({
   head: () => ({
@@ -25,7 +25,15 @@ export const Route = createFileRoute("/apply/success")({
 });
 
 function SuccessStep() {
-  const { hospitalName } = usePortal();
+  const { hospitalName, portal } = usePortal();
+  const application = portal?.application ?? null;
+  const submittedOn = application?.submittedAt
+    ? new Date(application.submittedAt).toLocaleDateString("en-GB", {
+        day: "2-digit",
+        month: "long",
+        year: "numeric",
+      })
+    : "Just now";
 
   return (
     <ApplyShell
@@ -49,13 +57,13 @@ function SuccessStep() {
           <div className="flex items-center justify-between gap-3">
             <dt className="text-sm text-muted-foreground">Application ID</dt>
             <dd className="text-sm font-semibold text-foreground">
-              {application.id}
+              {application?.reference ?? "Being generated"}
             </dd>
           </div>
           <div className="flex items-center justify-between gap-3">
             <dt className="text-sm text-muted-foreground">Submitted</dt>
             <dd className="text-sm font-medium text-foreground">
-              {application.submitted}
+              {submittedOn}
             </dd>
           </div>
         </dl>

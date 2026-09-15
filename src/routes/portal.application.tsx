@@ -4,7 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { AlertCircle, Check, Circle, Loader2 } from "lucide-react";
 
 import { getMyApplication } from "@/lib/applications.functions";
-import { campaign, usePortal } from "@/lib/portal-store";
+import { usePortal } from "@/lib/portal-store";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/portal/application")({
@@ -144,7 +144,7 @@ function ApplicationPage() {
             ["Hospital", data.hospitalName ?? hospitalName],
             ["Patient", profile.fullName],
             ["Current status", data.status],
-            ["Treatment", campaign.diagnosis],
+            ["Treatment", data.title],
           ].map(([label, value]) => (
             <div key={label}>
               <dt className="text-xs text-muted-foreground">{label}</dt>

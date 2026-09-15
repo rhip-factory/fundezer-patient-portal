@@ -7,6 +7,7 @@
 - [x] Portal is gated: signed-out visitors are sent back to the login screen; log out clears the session
 - [x] Explicit account creation with a private patient profile
 - [x] Remove visible prototype and simulated-experience wording
+- [x] All portal pages read live data (campaign, application status, submission confirmation)
 - [ ] Signed-in end-to-end check (submit + refresh) — blocked: no test account password for the shared backend
 
 Other portal pages (campaign, treatment, documents, notifications, profile, settings) intentionally keep sample content.

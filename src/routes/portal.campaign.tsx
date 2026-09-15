@@ -11,7 +11,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { campaign, naira } from "@/lib/portal-store";
+import { naira, relativeTime, usePortal } from "@/lib/portal-store";
 
 export const Route = createFileRoute("/portal/campaign")({
   head: () => ({
@@ -32,20 +32,20 @@ export const Route = createFileRoute("/portal/campaign")({
   component: CampaignPage,
 });
 
-const donations = [
-  { id: "g1", name: "Anonymous", amount: 50000, time: "5 hours ago" },
-  { id: "g2", name: "Chidi O.", amount: 25000, time: "Yesterday" },
-  { id: "g3", name: "Grace A.", amount: 100000, time: "2 days ago" },
-  { id: "g4", name: "Anonymous", amount: 15000, time: "3 days ago" },
-  { id: "g5", name: "Musa I.", amount: 200000, time: "4 days ago" },
-];
-
 function CampaignPage() {
-  const percent = Math.round((campaign.raised / campaign.goal) * 100);
-  const link = "https://fundezer.app/c/amina-yusuf";
+  const { portal, isPortalLoading, portalError, hospitalName } = usePortal();
+  const campaign = portal?.campaign ?? null;
   const [shareOpen, setShareOpen] = useState(false);
 
-  const shareText = `Support ${campaign.title} on FundEzer`;
+  const goal = campaign?.target ?? 0;
+  const raised = campaign?.raised ?? 0;
+  const percent = goal > 0 ? Math.min(100, Math.round((raised / goal) * 100)) : 0;
+  const donations = campaign?.recentDonations ?? [];
+  const link = campaign?.slug
+    ? `https://fundezer.app/c/${campaign.slug}`
+    : "https://fundezer.app";
+
+  const shareText = `Support ${campaign?.title ?? "this campaign"} on FundEzer`;
   const shareBody = `Hi,\n\nI’m raising funds for my treatment through FundEzer. Please consider supporting my campaign:\n\n${link}`;
 
   const copyLink = async () => {
@@ -88,22 +88,56 @@ function CampaignPage() {
     window.open(href, "_blank", "noopener,noreferrer,width=600,height=400");
   };
 
+  if (isPortalLoading) {
+    return (
+      <div className="rounded-2xl border border-border bg-card p-10 text-center">
+        <p className="text-sm text-muted-foreground">Loading your campaign…</p>
+      </div>
+    );
+  }
+
+  if (portalError) {
+    return (
+      <div className="rounded-2xl border border-border bg-card p-8 text-center">
+        <p className="text-sm font-medium text-foreground">
+          We could not load your campaign
+        </p>
+        <p className="mt-1 text-sm text-muted-foreground">{portalError}</p>
+      </div>
+    );
+  }
+
+  if (!campaign) {
+    return (
+      <div className="rounded-2xl border border-border bg-card p-8 text-center">
+        <p className="text-sm font-medium text-foreground">
+          Your campaign is not live yet
+        </p>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Once your application is approved, your campaign will appear here.
+        </p>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <section className="rounded-2xl border border-border bg-card p-5 sm:p-7">
         <span className="inline-flex items-center gap-1.5 rounded-full bg-success-soft px-3 py-1 text-xs font-medium text-success">
-          Live
+          {campaign.status}
         </span>
         <h2 className="mt-3 text-xl font-semibold text-card-foreground">
           {campaign.title}
         </h2>
-        <p className="mt-1 text-sm text-muted-foreground">{campaign.hospital}</p>
+        <p className="mt-1 text-sm text-muted-foreground">
+          {campaign.hospitalName ?? hospitalName}
+        </p>
 
         <p className="mt-5 text-3xl font-semibold text-card-foreground">
           {naira(campaign.raised)}
         </p>
         <p className="text-sm text-muted-foreground">
-          raised of {naira(campaign.goal)} goal
+          raised of {naira(goal)} goal
         </p>
         <div className="mt-4 h-2.5 w-full overflow-hidden rounded-full bg-secondary">
           <div
@@ -115,7 +149,7 @@ function CampaignPage() {
           {[
             ["Funded", `${percent}%`],
             ["Donors", `${campaign.donors}`],
-            ["Remaining", naira(campaign.goal - campaign.raised)],
+            ["Remaining", naira(Math.max(0, goal - raised))],
           ].map(([label, value]) => (
             <div key={label} className="rounded-xl bg-secondary/60 px-4 py-3">
               <p className="text-xs text-muted-foreground">{label}</p>
@@ -176,12 +210,16 @@ function CampaignPage() {
           YOUR STORY
         </h3>
         <p className="mt-3 text-sm leading-relaxed text-card-foreground">
-          {campaign.story}
+          {campaign.story ?? "Your story will appear here once it is published."}
         </p>
-        <div className="mt-5 border-t border-border pt-4">
-          <p className="text-xs text-muted-foreground">Treatment plan</p>
-          <p className="mt-1 text-sm text-foreground">{campaign.treatmentPlan}</p>
-        </div>
+        {portal?.patient?.condition && (
+          <div className="mt-5 border-t border-border pt-4">
+            <p className="text-xs text-muted-foreground">Treatment</p>
+            <p className="mt-1 text-sm text-foreground">
+              {portal.patient.condition}
+            </p>
+          </div>
+        )}
       </section>
 
       <section className="rounded-2xl border border-border bg-card p-5 sm:p-6">
@@ -191,6 +229,11 @@ function CampaignPage() {
             RECENT DONATIONS
           </h3>
         </div>
+        {donations.length === 0 && (
+          <p className="mt-4 text-sm text-muted-foreground">
+            No donations yet. Share your campaign to get started.
+          </p>
+        )}
         <ul className="mt-4 divide-y divide-border">
           {donations.map((d) => (
             <li
@@ -201,7 +244,9 @@ function CampaignPage() {
                 <p className="truncate text-sm font-medium text-foreground">
                   {d.name}
                 </p>
-                <p className="text-xs text-muted-foreground">{d.time}</p>
+                <p className="text-xs text-muted-foreground">
+                  {relativeTime(d.createdAt)}
+                </p>
               </div>
               <p className="shrink-0 text-sm font-semibold text-primary">
                 {naira(d.amount)}
