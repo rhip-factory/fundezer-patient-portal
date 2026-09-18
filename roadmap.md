@@ -9,5 +9,7 @@
 - [x] Remove visible prototype and simulated-experience wording
 - [x] All portal pages read live data (campaign, application status, submission confirmation)
 - [ ] Signed-in end-to-end check (submit + refresh) — blocked: no test account password for the shared backend
+- [ ] Campaign page: patient can submit a campaign into the real `campaigns` table; dashboard shows live totals
+- [ ] Shared admin page for linking patients to portal accounts (admins create portal accounts)
 
 Other portal pages (campaign, treatment, documents, notifications, profile, settings) intentionally keep sample content.
