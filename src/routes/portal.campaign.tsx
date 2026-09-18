@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { Copy, Facebook, Link2, Mail, Share2, Users, XIcon } from "lucide-react";
+import { useServerFn } from "@tanstack/react-start";
+import { Copy, Facebook, Link2, Loader2, Mail, Share2, Users, XIcon } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -11,6 +12,10 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { submitPortalCampaign } from "@/lib/campaigns.functions";
 import { naira, relativeTime, usePortal } from "@/lib/portal-store";
 
 export const Route = createFileRoute("/portal/campaign")({
@@ -108,17 +113,9 @@ function CampaignPage() {
   }
 
   if (!campaign) {
-    return (
-      <div className="rounded-2xl border border-border bg-card p-8 text-center">
-        <p className="text-sm font-medium text-foreground">
-          Your campaign is not live yet
-        </p>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Once your application is approved, your campaign will appear here.
-        </p>
-      </div>
-    );
+    return <CampaignForm />;
   }
+
 
   return (
     <div className="space-y-6">
