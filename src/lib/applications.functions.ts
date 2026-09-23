@@ -18,6 +18,7 @@ export type SubmitApplicationInput = {
   title: string;
   story: string;
   hospitalName: string;
+  hospitalId: string;
   country: string;
   state: string;
   fullName: string;
@@ -42,6 +43,7 @@ function validate(input: unknown): SubmitApplicationInput {
     title,
     story,
     hospitalName: str(raw['hospitalName'], 160),
+    hospitalId: str(raw['hospitalId'], 40),
     country: str(raw['country'], 80),
     state: str(raw['state'], 80),
     fullName: str(raw['fullName'], 160),
@@ -100,7 +102,11 @@ export const submitApplication = createServerFn({ method: "POST" })
       .maybeSingle();
     if (patientError) throw new Error("We could not load your patient record.");
 
-    const hospital = await findHospital(supabase as never, data.hospitalName);
+    const { supabaseAdmin: admin } = await import("@/integrations/supabase/client.server");
+    const { data: hRow } = data.hospitalId
+      ? await admin.from("hospitals").select("id, name").eq("id", data.hospitalId).eq("status", "active").eq("verification", "Verified").maybeSingle()
+      : { data: null };
+    const hospital = hRow ?? (await findHospital(admin as never, data.hospitalName));
 
     let patientId = existingPatient?.id ?? null;
 

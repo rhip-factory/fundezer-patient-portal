@@ -92,6 +92,7 @@ function ReviewStep() {
           title: `Treatment support for ${profile.fullName || "a patient"}`,
           story: flow.story,
           hospitalName: hospitalName,
+          hospitalId: flow.hospitalId ?? "",
           country: flow.country || "Nigeria",
           state: flow.state || "",
           fullName: profile.fullName,
