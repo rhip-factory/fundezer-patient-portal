@@ -255,3 +255,55 @@ function CampaignPage() {
     </div>
   );
 }
+
+function CampaignForm() {
+  const { refreshPortal, hospitalName } = usePortal();
+  const submit = useServerFn(submitPortalCampaign);
+  const [title, setTitle] = useState("");
+  const [story, setStory] = useState("");
+  const [target, setTarget] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  const onSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSaving(true);
+    try {
+      await submit({ data: { title, story, target: Number(target) } });
+      toast.success("Campaign submitted for review");
+      refreshPortal();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Could not submit your campaign");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <form
+      onSubmit={onSubmit}
+      className="space-y-4 rounded-2xl border border-border bg-card p-5 sm:p-7"
+    >
+      <div>
+        <h2 className="text-xl font-semibold text-card-foreground">Start your campaign</h2>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Your campaign will be reviewed by {hospitalName} and FundEzer before it goes live.
+        </p>
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="c-title">Campaign title</Label>
+        <Input id="c-title" value={title} onChange={(e) => setTitle(e.target.value)} required />
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="c-story">Your story</Label>
+        <Textarea id="c-story" rows={6} value={story} onChange={(e) => setStory(e.target.value)} required />
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="c-target">Amount to raise (₦)</Label>
+        <Input id="c-target" type="number" min={1} value={target} onChange={(e) => setTarget(e.target.value)} required />
+      </div>
+      <Button type="submit" disabled={saving}>
+        {saving && <Loader2 className="size-4 animate-spin" />} Submit campaign
+      </Button>
+    </form>
+  );
+}
