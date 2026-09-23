@@ -28,12 +28,13 @@ export const Route = createFileRoute("/apply/hospital")({
 });
 
 function HospitalStep() {
-  const { flow, setHospital } = usePortal();
+  const { flow, setHospital, partnerHospitals, hospitalsLoading, hospitalsError } =
+    usePortal();
   const [selected, setSelected] = useState<string | null>(flow.hospitalId);
   const [query, setQuery] = useState("");
   const navigate = useNavigate();
 
-  const results = hospitals.filter((h) =>
+  const results = partnerHospitals.filter((h) =>
     h.name.toLowerCase().includes(query.trim().toLowerCase()),
   );
 
@@ -116,14 +117,23 @@ function HospitalStep() {
             );
           })}
 
-          {results.length === 0 && (
+          {hospitalsLoading && (
+            <p className="p-8 text-center text-sm text-muted-foreground">
+              Loading partner hospitals…
+            </p>
+          )}
+          {hospitalsError && (
+            <p className="p-8 text-center text-sm text-destructive">{hospitalsError}</p>
+          )}
+          {!hospitalsLoading && !hospitalsError && results.length === 0 && (
             <div className="rounded-2xl border border-dashed border-border p-8 text-center">
               <p className="text-sm font-medium text-foreground">
-                No hospitals match that search
+                {partnerHospitals.length === 0
+                  ? "No partner hospitals are available yet"
+                  : "No hospitals match that search"}
               </p>
               <p className="mt-1 text-sm text-muted-foreground">
-                Try another name, or clear your search to see all Abuja partner
-                hospitals.
+                Only hospitals registered on the FundEzer Hospital Portal appear here.
               </p>
             </div>
           )}

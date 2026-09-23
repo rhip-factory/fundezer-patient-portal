@@ -11,6 +11,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 
 import { supabase } from "@/integrations/supabase/client";
+import { listPartnerHospitals, type PartnerHospital } from "@/lib/hospitals.functions";
 import {
   getPortalOverview,
   markAllNotificationsRead,
@@ -323,6 +324,9 @@ type PortalContextValue = {
   requiredTotal: number;
   missingRequired: DocSpec[];
   hospitalName: string;
+  partnerHospitals: PartnerHospital[];
+  hospitalsLoading: boolean;
+  hospitalsError: string | null;
   /* live portal data */
   portal: PortalOverview | null;
   isPortalLoading: boolean;
@@ -484,6 +488,15 @@ export function PortalProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
+  const fetchHospitals = useServerFn(listPartnerHospitals);
+  const hospitalsQuery = useQuery({
+    queryKey: ["partner-hospitals"],
+    queryFn: () => fetchHospitals(),
+    enabled: hasSession,
+    staleTime: 60_000,
+  });
+  const partnerHospitals = hospitalsQuery.data ?? [];
+
   const overviewQuery = useQuery({
     queryKey: ["portal-overview"],
     queryFn: () => fetchOverview({}),
@@ -622,8 +635,13 @@ export function PortalProvider({ children }: { children: ReactNode }) {
       requiredUploaded: requiredSpecs.length - missingRequired.length,
       requiredTotal: requiredSpecs.length,
       missingRequired,
+      partnerHospitals,
+      hospitalsLoading: hasSession && hospitalsQuery.isPending,
+      hospitalsError: hospitalsQuery.error
+        ? "We could not load hospitals right now."
+        : null,
       hospitalName:
-        hospitals.find((h) => h.id === flow.hospitalId)?.name ??
+        partnerHospitals.find((h) => h.id === flow.hospitalId)?.name ??
         overview?.application?.hospitalName ??
         overview?.patient?.hospitalName ??
         "Your hospital",
