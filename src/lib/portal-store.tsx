@@ -289,6 +289,9 @@ type FlowState = {
   hospitalId: string | null;
   answers: string[];
   story: string;
+  campaignTitle: string;
+  summary: string;
+  amount: string;
   uploads: Record<string, UploadSlot>;
   submitted: boolean;
 };
@@ -304,6 +307,9 @@ const initialFlow: FlowState = {
   hospitalId: null,
   answers: storyQuestions.map(() => ""),
   story: "",
+  campaignTitle: "",
+  summary: "",
+  amount: "",
   uploads: emptyUploads(),
   submitted: false,
 };
@@ -315,6 +321,7 @@ type PortalContextValue = {
   setHospital: (id: string) => void;
   setAnswer: (index: number, value: string) => void;
   setStory: (value: string) => void;
+  setCampaign: (patch: Partial<Pick<FlowState, "campaignTitle" | "summary" | "amount">>) => void;
   startUpload: (id: string) => void;
   removeUpload: (id: string) => void;
   markSubmitted: () => void;
@@ -614,6 +621,7 @@ export function PortalProvider({ children }: { children: ReactNode }) {
           return { ...prev, answers };
         }),
       setStory: (story) => setFlow((prev) => ({ ...prev, story })),
+      setCampaign: (patch) => setFlow((prev) => ({ ...prev, ...patch })),
       startUpload,
       removeUpload: (id) =>
         setFlow((prev) => ({
@@ -629,6 +637,9 @@ export function PortalProvider({ children }: { children: ReactNode }) {
           hospitalId: null,
           answers: [...savedAnswers],
           story: buildStory(savedAnswers, profileDraft.fullName),
+          campaignTitle: "",
+          summary: "",
+          amount: "",
           uploads: emptyUploads(),
           submitted: false,
         }),
