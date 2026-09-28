@@ -89,8 +89,10 @@ function ReviewStep() {
     try {
       await submitApplicationFn({
         data: {
-          title: `Treatment support for ${profile.fullName || "a patient"}`,
+          title: flow.campaignTitle,
           story: flow.story,
+          summary: flow.summary,
+          amount: Number(flow.amount) || 0,
           hospitalName: hospitalName,
           hospitalId: flow.hospitalId ?? "",
           country: flow.country || "Nigeria",
@@ -160,6 +162,12 @@ function ReviewStep() {
             label="Next of kin"
             value={`${profile.kinName} · ${profile.kinRelation} · ${profile.kinPhone}`}
           />
+        </Section>
+
+        <Section title="CAMPAIGN" editTo="/apply/story-review">
+          <Row label="Campaign name" value={flow.campaignTitle || "Not set"} />
+          <Row label="Amount to raise" value={flow.amount ? `₦${Number(flow.amount).toLocaleString("en-NG")}` : "Not set"} />
+          <Row label="Description" value={flow.summary || "Not set"} />
         </Section>
 
         <Section title="MEDICAL STORY" editTo="/apply/story-review">

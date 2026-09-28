@@ -17,6 +17,8 @@ export type PatientApplication = {
 export type SubmitApplicationInput = {
   title: string;
   story: string;
+  summary: string;
+  amount: number;
   hospitalName: string;
   hospitalId: string;
   country: string;
@@ -37,11 +39,17 @@ function validate(input: unknown): SubmitApplicationInput {
   const raw = (input ?? {}) as Record<string, unknown>;
   const title = str(raw['title'], 160);
   const story = str(raw['story'], 8000);
-  if (!title) throw new Error("An application title is required.");
+  if (!title) throw new Error("A campaign name is required.");
   if (!story) throw new Error("Your story is required before submitting.");
+  const amount = Math.round(Number(raw['amount'] ?? 0));
+  if (!Number.isFinite(amount) || amount <= 0) throw new Error("Enter the amount you need to raise.");
+  const summary = str(raw['summary'], 1000);
+  if (!summary) throw new Error("A short campaign description is required.");
   return {
     title,
     story,
+    summary,
+    amount,
     hospitalName: str(raw['hospitalName'], 160),
     hospitalId: str(raw['hospitalId'], 40),
     country: str(raw['country'], 80),
@@ -164,7 +172,7 @@ export const submitApplication = createServerFn({ method: "POST" })
         hospital_id: hospital?.id ?? null,
         title: data.title,
         description: data.story,
-        requested_amount: 0,
+        requested_amount: data.amount,
         status: "Submitted",
       })
       .select("id")
@@ -173,6 +181,28 @@ export const submitApplication = createServerFn({ method: "POST" })
     if (insertError || !inserted) {
       console.error("[applications] insert failed", insertError);
       throw new Error("We could not submit your application. Please try again.");
+    }
+
+    // Create the linked campaign (under review, private until approved).
+    const { data: existingCampaign } = await admin
+      .from("campaigns").select("id").eq("patient_id", patientId).limit(1);
+    if (!existingCampaign?.[0]) {
+      const base = data.title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 48) || "campaign";
+      const { error: campaignError } = await admin.from("campaigns").insert({
+        patient_id: patientId,
+        application_id: inserted.id,
+        hospital_id: hospital?.id ?? null,
+        slug: `${base}-${Math.random().toString(36).slice(2, 8)}`,
+        title: data.title,
+        public_title: data.title,
+        public_story: data.summary,
+        internal_summary: data.story,
+        target: data.amount,
+        status: "Under Review",
+        is_public: false,
+        publication_consent_granted: true,
+      });
+      if (campaignError) console.error("[applications] campaign create failed", campaignError);
     }
 
     return {

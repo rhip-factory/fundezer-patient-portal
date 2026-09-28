@@ -3,6 +3,9 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Loader2, Sparkles } from "lucide-react";
 
 import { ApplyShell } from "@/components/apply-shell";
+import { useServerFn } from "@tanstack/react-start";
+
+import { draftCampaign } from "@/lib/campaign-draft.functions";
 import { buildStory, usePortal } from "@/lib/portal-store";
 import { cn } from "@/lib/utils";
 
@@ -32,20 +35,35 @@ const stages = [
 ];
 
 function GeneratingStep() {
-  const { flow, profile, setStory } = usePortal();
+  const { flow, profile, setStory, setCampaign } = usePortal();
+  const draft = useServerFn(draftCampaign);
   const [stage, setStage] = useState(0);
   const navigate = useNavigate();
 
   useEffect(() => {
+    let cancelled = false;
+    const story = buildStory(flow.answers, profile.fullName);
+    setStory(story);
     const timers = [
       setTimeout(() => setStage(1), 1200),
       setTimeout(() => setStage(2), 2400),
-      setTimeout(() => {
-        setStory(buildStory(flow.answers, profile.fullName));
-        navigate({ to: "/apply/story-review" });
-      }, 3600),
     ];
-    return () => timers.forEach(clearTimeout);
+    draft({ data: { story } })
+      .then((res) => {
+        if (cancelled) return;
+        setCampaign({
+          campaignTitle: flow.campaignTitle || res.title,
+          summary: flow.summary || res.summary,
+        });
+      })
+      .catch(() => {})
+      .finally(() => {
+        if (!cancelled) navigate({ to: "/apply/story-review" });
+      });
+    return () => {
+      cancelled = true;
+      timers.forEach(clearTimeout);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
