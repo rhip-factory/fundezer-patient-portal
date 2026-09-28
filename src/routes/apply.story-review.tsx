@@ -12,6 +12,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { storyQuestions, usePortal, wordCount } from "@/lib/portal-store";
 import { cn } from "@/lib/utils";
@@ -36,7 +38,7 @@ export const Route = createFileRoute("/apply/story-review")({
 });
 
 function StoryReview() {
-  const { flow, setStory } = usePortal();
+  const { flow, setStory, setCampaign } = usePortal();
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(flow.story);
   const [answersOpen, setAnswersOpen] = useState(false);
@@ -68,7 +70,12 @@ function StoryReview() {
           </Button>
           <Button
             disabled={editing}
-            onClick={() => navigate({ to: "/apply/documents" })}
+            onClick={() => {
+              if (!flow.campaignTitle.trim()) { toast.error("Please give your campaign a name."); return; }
+              if (!(Number(flow.amount) > 0)) { toast.error("Enter the amount you need to raise."); return; }
+              if (!flow.summary.trim()) { toast.error("Please add a short campaign description."); return; }
+              navigate({ to: "/apply/documents" });
+            }}
           >
             Continue
           </Button>
@@ -148,6 +155,27 @@ function StoryReview() {
             </div>
           </>
         )}
+      </div>
+
+      <div className="mt-5 space-y-4 rounded-2xl border border-border bg-card p-5 sm:p-7">
+        <div>
+          <h2 className="text-base font-semibold text-card-foreground">Your campaign</h2>
+          <p className="mt-1 text-xs text-muted-foreground">
+            This is what donors see first. The description was drafted from your story without personal details — edit anything you like.
+          </p>
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="camp-title">Campaign name</Label>
+          <Input id="camp-title" maxLength={160} value={flow.campaignTitle} onChange={(e) => setCampaign({ campaignTitle: e.target.value })} />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="camp-summary">Short description</Label>
+          <Textarea id="camp-summary" rows={4} maxLength={1000} value={flow.summary} onChange={(e) => setCampaign({ summary: e.target.value })} />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="camp-amount">Amount to raise (₦)</Label>
+          <Input id="camp-amount" type="number" min={1} value={flow.amount} onChange={(e) => setCampaign({ amount: e.target.value })} />
+        </div>
       </div>
 
       <Dialog open={answersOpen} onOpenChange={setAnswersOpen}>
