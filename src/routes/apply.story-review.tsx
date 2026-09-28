@@ -71,9 +71,9 @@ function StoryReview() {
           <Button
             disabled={editing}
             onClick={() => {
-              if (!flow.campaignTitle.trim()) return toast.error("Please give your campaign a name.");
-              if (!(Number(flow.amount) > 0)) return toast.error("Enter the amount you need to raise.");
-              if (!flow.summary.trim()) return toast.error("Please add a short campaign description.");
+              if (!flow.campaignTitle.trim()) { toast.error("Please give your campaign a name."); return; }
+              if (!(Number(flow.amount) > 0)) { toast.error("Enter the amount you need to raise."); return; }
+              if (!flow.summary.trim()) { toast.error("Please add a short campaign description."); return; }
               navigate({ to: "/apply/documents" });
             }}
           >
