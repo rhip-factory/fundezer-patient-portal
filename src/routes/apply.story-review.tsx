@@ -72,7 +72,6 @@ function StoryReview() {
             disabled={editing}
             onClick={() => {
               if (!flow.campaignTitle.trim()) { toast.error("Please give your campaign a name."); return; }
-              if (!(Number(flow.amount) > 0)) { toast.error("Enter the amount you need to raise."); return; }
               if (!flow.summary.trim()) { toast.error("Please add a short campaign description."); return; }
               navigate({ to: "/apply/documents" });
             }}
@@ -161,7 +160,7 @@ function StoryReview() {
         <div>
           <h2 className="text-base font-semibold text-card-foreground">Your campaign</h2>
           <p className="mt-1 text-xs text-muted-foreground">
-            This is what donors see first. The description was drafted from your story without personal details — edit anything you like.
+            This is what donors see first. The description was drafted from your story without personal details — edit anything you like. Your hospital reviews your application, sets the amount to raise and takes your campaign live.
           </p>
         </div>
         <div className="space-y-2">
@@ -171,10 +170,6 @@ function StoryReview() {
         <div className="space-y-2">
           <Label htmlFor="camp-summary">Short description</Label>
           <Textarea id="camp-summary" rows={4} maxLength={1000} value={flow.summary} onChange={(e) => setCampaign({ summary: e.target.value })} />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="camp-amount">Amount to raise (₦)</Label>
-          <Input id="camp-amount" type="number" min={1} value={flow.amount} onChange={(e) => setCampaign({ amount: e.target.value })} />
         </div>
       </div>
 
