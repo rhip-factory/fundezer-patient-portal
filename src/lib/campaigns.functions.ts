@@ -28,13 +28,10 @@ export const submitPortalCampaign = createServerFn({ method: "POST" })
     const raw = (input ?? {}) as Record<string, unknown>;
     const title = str(raw["title"], 160);
     const story = str(raw["story"], 4000);
-    const target = Number(raw["target"] ?? 0);
     if (!title) throw new Error("A campaign title is required.");
     if (!story) throw new Error("Please tell your story.");
-    if (!Number.isFinite(target) || target <= 0) {
-      throw new Error("Enter the amount you need to raise.");
-    }
-    return { title, story, target: Math.round(target) };
+    // The funding target is set by the hospital after review.
+    return { title, story, target: 0 };
   })
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;

@@ -261,14 +261,13 @@ function CampaignForm() {
   const submit = useServerFn(submitPortalCampaign);
   const [title, setTitle] = useState("");
   const [story, setStory] = useState("");
-  const [target, setTarget] = useState("");
   const [saving, setSaving] = useState(false);
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
     try {
-      await submit({ data: { title, story, target: Number(target) } });
+      await submit({ data: { title, story } });
       toast.success("Campaign submitted for review");
       refreshPortal();
     } catch (err) {
@@ -297,10 +296,9 @@ function CampaignForm() {
         <Label htmlFor="c-story">Your story</Label>
         <Textarea id="c-story" rows={6} value={story} onChange={(e) => setStory(e.target.value)} required />
       </div>
-      <div className="space-y-2">
-        <Label htmlFor="c-target">Amount to raise (₦)</Label>
-        <Input id="c-target" type="number" min={1} value={target} onChange={(e) => setTarget(e.target.value)} required />
-      </div>
+      <p className="text-sm text-muted-foreground">
+        The amount to raise is set by your hospital after they review your application.
+      </p>
       <Button type="submit" disabled={saving}>
         {saving && <Loader2 className="size-4 animate-spin" />} Submit campaign
       </Button>
