@@ -41,8 +41,8 @@ function validate(input: unknown): SubmitApplicationInput {
   const story = str(raw['story'], 8000);
   if (!title) throw new Error("A campaign name is required.");
   if (!story) throw new Error("Your story is required before submitting.");
-  const amount = Math.round(Number(raw['amount'] ?? 0));
-  if (!Number.isFinite(amount) || amount <= 0) throw new Error("Enter the amount you need to raise.");
+  // The amount to raise is set by the hospital after review, not the patient.
+  const amount = 0;
   const summary = str(raw['summary'], 1000);
   if (!summary) throw new Error("A short campaign description is required.");
   return {
